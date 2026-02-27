@@ -1,0 +1,23 @@
+## Ideas:
+
+- Move about in 2D world in video game
+- Encounters done physically
+- Multiplayer, each player controls a character
+- Can fight against each other or work together / team against other players
+- Have to explore the (physical) board to unlock ores and stuff for their factory
+- Labyrinth / cave sort of thing
+	- Certain areas will *set in stone* and become inaccessible throughout the game
+	- Tar, cement, quicksand, avalanches, floods etc
+	- Once everything is sealed, game ends
+- Factorio sort of idea - players can create contracts with each other, *LESS LOGISTICS*
+- Points based on how many contract fulfilled / failed at end of game
+- Turn based exploration *and* ore production?
+- Limited amount of contracts you can accept? 
+- Contracts should be on the screen, can see progress etc
+- Can intentionally fail a contract early to lose less points than if it was at the end of the game, but that will keep the "contract slot" filled
+- Contracts should look carved onto a stone wall or something
+- Players will be dwarfs
+- Enemies will be monsters, probably should have a gorgon and a balrog style thing, maybe have to fight dwayne the rock ... lol
+- Combat areas with enemies blocking important stuff, players can work together to kill the monsters
+	- Physically with dice, monster figures around the map
+- 3-5 players?
