@@ -1,10 +1,10 @@
 import dataclasses
 import functools
-from collections import Counter
 from pathlib import Path
+from typing import Callable
 
 import pygame
-from pygame import Vector2 as Vec2, Color
+from pygame import Vector2 as Vec2
 from pygame import FRect, Rect as IRect
 
 import factoryMechanics as backend
@@ -31,17 +31,8 @@ class ScreenInfo:
             topleft=self.player_buildings_area.bottomleft)
         return self
 
-SC_INFO = ScreenInfo().from_sc_size(Vec2(1200, 750))
 
-# SC_SIZE = Vec2(1600, 900)
-# SC_RECT = IRect((0, 0), SC_SIZE)
-# MAIN_AREA = SC_RECT.scale_by(1, 0.9).move_to(topleft=(0, 0))
-# MENU_AREA = SC_RECT.scale_by(1, 0.1).move_to(topleft=MAIN_AREA.bottomleft)
-# BASE_PLAYER_AREA = MAIN_AREA.scale_by(0.5, 0.5).move_to(topleft=(0, 0))
-# PLAYER_ORES_AREA = BASE_PLAYER_AREA.scale_by(0.15, 1).move_to(topleft=BASE_PLAYER_AREA.topleft)
-# PLAYER_RIGHT_AREA = BASE_PLAYER_AREA.scale_by(0.85, 1).move_to(topleft=PLAYER_ORES_AREA.topright)
-# PLAYER_BUILDINGS_AREA = PLAYER_RIGHT_AREA.scale_by(1, 0.6).move_to(topleft=PLAYER_RIGHT_AREA.topleft)
-# PLAYER_BUY_AREA = PLAYER_RIGHT_AREA.scale_by(1, 0.4).move_to(topleft=PLAYER_BUILDINGS_AREA.bottomleft)
+SC_INFO = ScreenInfo().from_sc_size(Vec2(1200, 750))
 
 
 def clamped_subsurf(s: pygame.Surface, r: IRect | FRect):
@@ -80,7 +71,11 @@ def abbreviate(s: str):
 class Player:
     color: pygame.Color
     factory: Factory
-    area: IRect
+    area_getter: Callable[[], IRect]
+
+    @property
+    def area(self):
+        return self.area_getter()
 
     def render_factories(self, dest: pygame.Surface):
         x = 5
@@ -170,13 +165,13 @@ def main():
     running = True
 
     p1 = Player(pygame.Color("red"), demo_factory(),
-                SC_INFO.base_player_area)
+                lambda: SC_INFO.base_player_area)
     p2 = Player(pygame.Color("yellow"), demo_factory(),
-                SC_INFO.base_player_area.move_to(left=SC_INFO.main_area.w / 2))
+                lambda: SC_INFO.base_player_area.move_to(left=SC_INFO.main_area.w / 2))
     p3 = Player(pygame.Color("green"), demo_factory(),
-                SC_INFO.base_player_area.move_to(top=SC_INFO.main_area.h / 2))
+                lambda: SC_INFO.base_player_area.move_to(top=SC_INFO.main_area.h / 2))
     p4 = Player(pygame.Color("blue"), demo_factory(),
-                SC_INFO.base_player_area.move_to(topleft=Vec2(SC_INFO.main_area.size) / 2))
+                lambda: SC_INFO.base_player_area.move_to(topleft=Vec2(SC_INFO.main_area.size) / 2))
     players = [p1, p2, p3, p4]
 
     i = 0
