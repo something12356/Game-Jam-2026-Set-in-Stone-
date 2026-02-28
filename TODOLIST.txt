@@ -14,4 +14,6 @@ Find a way to integrate the music into the code (Or just play it in the backgrou
 
 Tweak numbers with playtesting
 
+Add a way to randomize starting resources
+
 

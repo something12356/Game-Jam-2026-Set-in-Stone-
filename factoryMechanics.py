@@ -152,13 +152,13 @@ class Titanium(Ore):
     name = 'Titanium'
 
     def __init__(self, amount):
-        super().__init__(amount, "Titanium", (255, 255, 255))
+        super().__init__(amount, "Titanium", (150, 150, 150))
 
 class Tantalum(Ore):
     name = 'Tantalum'
 
     def __init__(self, amount):
-        super().__init__(amount, "Tantalum", (200, 200, 200))
+        super().__init__(amount, "Tantalum", (0, 0, 0))
 
 class FireOpal(Ore):
     name = 'FireOpal'
@@ -170,7 +170,7 @@ class NullResource(Ore):
     name = "NullResource"
 
     def __init__(self, amount):
-        super().__init__(amount, "NullResource", (0, 0, 0))
+        super().__init__(amount, "NullResource", (255, 0, 0))
 
 # Add capability to mine multiple ores with same building
 class Building:

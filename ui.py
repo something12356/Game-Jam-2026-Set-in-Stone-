@@ -8,7 +8,7 @@ from pygame import Vector2 as Vec2, Color
 from pygame import FRect, Rect as IRect
 
 import factoryMechanics as backend
-from factoryMechanics import Factory, CopperMineBasic, Copper, Building, Contract, \
+from factoryMechanics import Factory, CopperMineBasic, Copper, Iron, Titanium, Tantalum, Building, Contract, \
     NullResource
 
 ORE_TEXT_COLOR = 'white'
@@ -338,28 +338,35 @@ class Overlay:
             y += tex.height + 5
             max_w = max(max_w, txr.right)
         for y, (n, t) in zip(ys, terms):
-            tex = load_from_fontspec('Courier New', 'monospace').render(
-                f'-', True, 'white'
-            )
-            txr = tex.get_rect(left=max_w + 20, top=y)
+            tex_m10 = load_from_fontspec('Courier New', 'monospace', size=15).render('-10', True, 'white')
+            txr_m10 = tex_m10.get_rect(left=max_w + 10, top=y + 2)
+            pygame.draw.rect(dest, Color(50, 50, 50), txx_m10 := txr_m10.inflate(6, 0), border_radius=8)
+            dest.blit(tex_m10, txr_m10)
+            self.buttons += [(self.texas(side, txx_m10), lambda t=t: self.adjust_quantity(side, t, -10))]
+
+            tex = load_from_fontspec('Courier New', 'monospace').render('-', True, 'white')
+            txr = tex.get_rect(left=txr_m10.right + 15, top=y)
             pygame.draw.rect(dest, Color(50, 50, 50), txx := txr.inflate(txr.h - txr.w, 0), border_radius=8)
             dest.blit(tex, txr)
-            self.buttons += [(self.texas(side, txx), lambda t=t: self.decrease(side, t))]
+            self.buttons += [(self.texas(side, txx), lambda t=t: self.adjust_quantity(side, t, -1))]
 
             x = txr.right
-            tex = load_from_fontspec('Courier New', 'monospace').render(
-                f'{n}', True, 'white'
-            )
-            dest.blit(tex, txr := tex.get_rect(left=x + 20, top=y))
-            x = txr.right
-            tex = load_from_fontspec('Courier New', 'monospace').render(
-                f'+', True, 'white'
-            )
+            tex_val = load_from_fontspec('Courier New', 'monospace').render(f'{n}', True, 'white')
+            txr_val = tex_val.get_rect(left=x + 20, top=y)
+            dest.blit(tex_val, txr_val)
+            
+            x = txr_val.right
+            tex = load_from_fontspec('Courier New', 'monospace').render('+', True, 'white')
             txr = tex.get_rect(left=x + 20, top=y)
-            pygame.draw.rect(dest, Color(50, 50, 50), txx := txr.inflate(txr.h - txr.w, 0),
-                             border_radius=8)
+            pygame.draw.rect(dest, Color(50, 50, 50), txx := txr.inflate(txr.h - txr.w, 0), border_radius=8)
             dest.blit(tex, txr)
-            self.buttons += [(self.texas(side, txx), lambda t=t: self.increase(side, t))]
+            self.buttons += [(self.texas(side, txx), lambda t=t: self.adjust_quantity(side, t, 1))]
+
+            tex_p10 = load_from_fontspec('Courier New', 'monospace', size=15).render('+10', True, 'white')
+            txr_p10 = tex_p10.get_rect(left=txr.right + 15, top=y + 2)
+            pygame.draw.rect(dest, Color(50, 50, 50), txx_p10 := txr_p10.inflate(6, 0), border_radius=8)
+            dest.blit(tex_p10, txr_p10)
+            self.buttons += [(self.texas(side, txx_p10), lambda t=t: self.adjust_quantity(side, t, 10))]
 
     def pleft(self):
         self.current.party2 = self.other_players[
@@ -374,17 +381,11 @@ class Overlay:
             return txx  # no texas required
         return txx.move(Vec2(self.right_main_rel.topleft) - Vec2(self.main_section_rel.topleft))
 
-    def decrease(self, side: int, res: str):
+    def adjust_quantity(self, side: int, res: str, amount: int) -> None:
         ls = self.current.terms1 if side == 1 else self.current.terms2
         for i, (n, t) in enumerate(ls):
             if t == res:
-                ls[i] = max(n - 1, 0), t
-
-    def increase(self, side: int, res: str):
-        ls = self.current.terms1 if side == 1 else self.current.terms2
-        for i, (n, t) in enumerate(ls):
-            if t == res:
-                ls[i] = n + 1, t
+                ls[i] = (max(n + amount, 0), t)
 
     def action_cancel(self):
         self.state.creating_contract = None
@@ -463,9 +464,9 @@ def render_players_screen(screen: pygame.Surface, players: list[Player], playerT
 
 def demo_factory(name: str):
     factory1 = Factory(name, [CopperMineBasic()],
-                       [Copper(12),
+                       [Copper(1200), Iron(100), Titanium(50),
                         *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
-                          if oc != Copper and oc != NullResource)], 10)
+                          if oc != Copper and oc != NullResource and oc != Iron and oc != Titanium)], 10)
     return factory1
 
 def render_turnCount(dest: pygame.Surface, turn):
