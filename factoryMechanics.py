@@ -211,6 +211,7 @@ class IronMine(Building):
 classes = {"Iron":Iron, "Copper":Copper, "CopperMineBasic": CopperMineBasic, "CopperMineAdvanced":CopperMineAdvanced, "IronMine":IronMine, "Block":BlockedSlot}
 MINE_CLASSES = {"CopperMineBasic": CopperMineBasic, "CopperMineAdvanced":CopperMineAdvanced, "IronMine":IronMine, "BlockedSlot": BlockedSlot}
 RESOURCE_CLASSES = {"Iron":Iron, "Copper":Copper, "NullResource": NullResource}
+TRADE_POSSIBILITIES = (set(RESOURCE_CLASSES) - {"NullResource"}) | {"Increase slot"}
 
 if __name__ == '__main__':
     factory1 = Factory("p1", [CopperMineBasic()], [Copper(2), Iron(0), FireOpal(0)], 10)

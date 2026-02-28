@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Callable
 
 import pygame
-from pygame import Vector2 as Vec2
+from pygame import Vector2 as Vec2, Color
 from pygame import FRect, Rect as IRect
 
 import factoryMechanics as backend
@@ -36,7 +36,7 @@ class ScreenInfo:
         self.right_button_area = self.menu_area.scale_by(0.5, 1).move_to(
             topleft=self.left_button_area.topright)
         self.contract_list_area = self.base_player_area.scale_by(1, 0.85).move_to(
-            topleft=self.base_player_area.topleft)
+            topleft=(0, 0))
         self.contract_new_area = self.base_player_area.scale_by(1, 0.15).move_to(
             bottomleft=self.base_player_area.bottomleft)
         self.overlay_area = self.sc_rect.scale_by(0.9, 0.9)  # smae cetner?
@@ -86,7 +86,7 @@ def abbreviate(s: str):
 
 @dataclasses.dataclass
 class State:
-    creating_contract: bool = False
+    creating_contract: Factory | None = None
 
 
 @dataclasses.dataclass
@@ -194,7 +194,7 @@ class Player:
         self.buttons += [(crect.move(Vec2(SC_INFO.contract_new_area.topleft) - SC_INFO.base_player_area.topleft), self.on_new_clicked)]
 
     def on_new_clicked(self):
-        self.state.creating_contract = True
+        self.state.creating_contract = self.factory
 
     def render_contracts_area(self, dest: pygame.Surface):
         dest.fill(self.color.lerp(pygame.Color(0, 0, 0), 0.9))
@@ -215,6 +215,7 @@ class Player:
 class Overlay:
     area_getter: Callable[[], IRect]
     state: State
+    current: Contract = None
 
     def begin(self):
         self.buttons: list[tuple[IRect, Callable[[], None]]] = []
@@ -249,8 +250,13 @@ class Overlay:
 
     def display(self, dest: pygame.Surface):
         self.begin()
-        if not self.state.creating_contract:
+        if self.state.creating_contract is None:
             return
+        if self.current is None:
+            self.current = Contract(
+                self.state.creating_contract, None,
+                [(0, t) for t in backend.TRADE_POSSIBILITIES],
+                [(0, t) for t in backend.TRADE_POSSIBILITIES], -1)
         # CANCEL
         cbb = self.cancel_button_rel.inflate(-4, -4)
         pygame.draw.rect(dest, pygame.Color(50, 50, 50), cbb)
@@ -268,8 +274,68 @@ class Overlay:
         # Register buttons, ig
         self.buttons += [(cbb, self.action_cancel)]
 
+        self.display_side(clamped_subsurf(dest, self.left_main_rel), self.current.terms1)
+
+    def display_side(self, dest: pygame.Surface, terms: list[tuple[int, str]]):
+        inner = dest.get_rect().inflate(-10, -10)  # le bordure
+        y = 10  # 5 + pad 5
+        pygame.draw.rect(dest, pygame.Color(20, 20, 20), inner)
+        tex = load_from_fontspec('Helvetica', 'sans-serif', align=pygame.FONT_CENTER).render(
+            'You', True, 'white'
+        )
+        pygame.draw.rect(dest, pygame.Color(30, 30, 30), tex.get_rect(width=inner.width - 10, centerx=inner.centerx, top=y).inflate(2, 2))
+        dest.blit(tex, tex.get_rect(centerx=inner.centerx, top=y))
+        y += tex.height + 10  # 5 pad each
+        max_w = 10
+        ys = []
+        for n, t in terms:
+            td = "Machine Slot" if t == "Increase slot" else t
+            tex = load_from_fontspec('Helvetica', 'sans-serif').render(
+                f'{td}:', True, 'white'
+            )
+            dest.blit(tex, txr := tex.get_rect(left=inner.left + 8, top=y))
+            ys.append(y)
+            y += tex.height + 5
+            max_w = max(max_w, txr.right)
+        for y, (n, t) in zip(ys, terms):
+            tex = load_from_fontspec('Courier New', 'monospace').render(
+                f'-', True, 'white'
+            )
+            txr = tex.get_rect(left=max_w + 20, top=y)
+            pygame.draw.rect(dest, Color(50, 50, 50), txx := txr.inflate(txr.h - txr.w, 0), border_radius=8)
+            dest.blit(tex, txr)
+            self.buttons += [(txx, lambda t=t: self.decrease(1, t))]
+
+            x = txr.right
+            tex = load_from_fontspec('Courier New', 'monospace').render(
+                f'{n}', True, 'white'
+            )
+            dest.blit(tex, txr := tex.get_rect(left=x + 20, top=y))
+            x = txr.right
+            tex = load_from_fontspec('Courier New', 'monospace').render(
+                f'+', True, 'white'
+            )
+            txr = tex.get_rect(left=x + 20, top=y)
+            pygame.draw.rect(dest, Color(50, 50, 50), txx := txr.inflate(txr.h - txr.w, 0),
+                             border_radius=8)
+            dest.blit(tex, txr)
+            self.buttons += [(txx, lambda t=t: self.increase(1, t))]
+
+
+    def decrease(self, side: int, res: str):
+        ls = self.current.terms1 if side == 1 else self.current.terms2
+        for i, (n, t) in enumerate(ls):
+            if t == res:
+                ls[i] = max(n - 1, 0), t
+
+    def increase(self, side: int, res: str):
+        ls = self.current.terms1 if side == 1 else self.current.terms2
+        for i, (n, t) in enumerate(ls):
+            if t == res:
+                ls[i] = n + 1, t
+
     def action_cancel(self):
-        self.state.creating_contract = False
+        self.state.creating_contract = None
 
     def onclick(self, pos: Vec2):
         print('Recv Overlay.onclick')
