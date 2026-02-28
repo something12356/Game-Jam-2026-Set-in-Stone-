@@ -8,7 +8,7 @@ from pygame import Vector2 as Vec2, Color
 from pygame import FRect, Rect as IRect
 
 import factoryMechanics as backend
-from factoryMechanics import Factory, CopperMineBasic, Copper, Building, Contract, \
+from factoryMechanics import Factory, CopperMineBasic, Copper, Iron, Titanium, Tantalum, Building, Contract, \
     NullResource
 
 ORE_TEXT_COLOR = 'white'
@@ -455,9 +455,9 @@ def render_players_screen(screen: pygame.Surface, players: list[Player], playerT
 
 def demo_factory(name: str):
     factory1 = Factory(name, [CopperMineBasic()],
-                       [Copper(12),
+                       [Copper(1200), Iron(100), Titanium(50),
                         *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
-                          if oc != Copper and oc != NullResource)], 10)
+                          if oc != Copper and oc != NullResource and oc != Iron and oc != Titanium)], 10)
     return factory1
 
 def render_turnCount(dest: pygame.Surface, turn):
