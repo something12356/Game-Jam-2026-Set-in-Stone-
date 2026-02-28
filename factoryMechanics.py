@@ -2,7 +2,7 @@ import pygame
 
 class Factory:
     def __init__(self, buildings):
-        self.buildings = buildings
+        self.buildings: list[Building] = buildings
 
     def createBuilding(self, name, oreType, productionRate):
         building = Building(name, oreType, productionRate)
@@ -38,14 +38,15 @@ class Ore:
         self.amount = amount
         self.type = type
 
-factory1 = Factory([])
 
-factory1.createBuilding("building1", "ore1", 1)
-factory1.createBuilding("building2", "ore2", 2)
-factory1.createBuilding("building3", "ore1", 3)
+if __name__ == '__main__':
+    factory1 = Factory([])
 
-while True:
-    factory1.mineLoop()
-    factory1.getOres()
-    input("---")
+    factory1.createBuilding("building1", "ore1", 1)
+    factory1.createBuilding("building2", "ore2", 2)
+    factory1.createBuilding("building3", "ore1", 3)
 
+    while True:
+        factory1.mineLoop()
+        factory1.getOres()
+        input("---")
