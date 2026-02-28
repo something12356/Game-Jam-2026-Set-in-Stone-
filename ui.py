@@ -141,7 +141,7 @@ def main():
     p2 = Player(pygame.Color("yellow"), demo_factory(),
                 BASE_PLAYER_AREA.move_to(left=MAIN_AREA.w / 2))
     p3 = Player(pygame.Color("green"), demo_factory(),
-                BASE_PLAYER_AREA.move_to(left=MAIN_AREA.w / 2))
+                BASE_PLAYER_AREA.move_to(top=MAIN_AREA.h / 2))
     p4 = Player(pygame.Color("blue"), demo_factory(),
                 BASE_PLAYER_AREA.move_to(topleft=Vec2(MAIN_AREA.size) / 2))
     players = [p1, p2, p3, p4]
@@ -164,7 +164,7 @@ def main():
         screen.fill("purple")
 
         # RENDER YOUR GAME HERE
-        if (i + 1) % 60 == 0:
+        if (i + 1) % 10 == 0:
             for p in players:
                 p.factory.mineLoop(collecting=True)
         render_players_screen(screen, players)
