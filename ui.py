@@ -274,18 +274,20 @@ class Overlay:
         # Register buttons, ig
         self.buttons += [(cbb, self.action_cancel)]
 
-        self.display_side(clamped_subsurf(dest, self.left_main_rel), self.current.terms1)
+        self.display_side(clamped_subsurf(dest, self.left_main_rel), self.current.terms1, 1)
+        self.display_side(clamped_subsurf(dest, self.right_main_rel), self.current.terms2, 2)
 
-    def display_side(self, dest: pygame.Surface, terms: list[tuple[int, str]]):
+    def display_side(self, dest: pygame.Surface, terms: list[tuple[int, str]], side: int):
         inner = dest.get_rect().inflate(-10, -10)  # le bordure
         y = 10  # 5 + pad 5
         pygame.draw.rect(dest, pygame.Color(20, 20, 20), inner)
-        tex = load_from_fontspec('Helvetica', 'sans-serif', align=pygame.FONT_CENTER).render(
-            'You', True, 'white'
-        )
-        pygame.draw.rect(dest, pygame.Color(30, 30, 30), tex.get_rect(width=inner.width - 10, centerx=inner.centerx, top=y).inflate(2, 2))
-        dest.blit(tex, tex.get_rect(centerx=inner.centerx, top=y))
-        y += tex.height + 10  # 5 pad each
+        if side == 1:
+            tex = load_from_fontspec('Helvetica', 'sans-serif', align=pygame.FONT_CENTER).render(
+                'You', True, 'white'
+            )
+            pygame.draw.rect(dest, pygame.Color(30, 30, 30), tex.get_rect(width=inner.width - 10, centerx=inner.centerx, top=y).inflate(2, 2))
+            dest.blit(tex, tex.get_rect(centerx=inner.centerx, top=y))
+            y += tex.height + 10  # 5 pad each
         max_w = 10
         ys = []
         for n, t in terms:
@@ -304,7 +306,7 @@ class Overlay:
             txr = tex.get_rect(left=max_w + 20, top=y)
             pygame.draw.rect(dest, Color(50, 50, 50), txx := txr.inflate(txr.h - txr.w, 0), border_radius=8)
             dest.blit(tex, txr)
-            self.buttons += [(txx, lambda t=t: self.decrease(1, t))]
+            self.buttons += [(self.texas(side, txx), lambda t=t: self.decrease(side, t))]
 
             x = txr.right
             tex = load_from_fontspec('Courier New', 'monospace').render(
@@ -319,8 +321,12 @@ class Overlay:
             pygame.draw.rect(dest, Color(50, 50, 50), txx := txr.inflate(txr.h - txr.w, 0),
                              border_radius=8)
             dest.blit(tex, txr)
-            self.buttons += [(txx, lambda t=t: self.increase(1, t))]
+            self.buttons += [(self.texas(side, txx), lambda t=t: self.increase(side, t))]
 
+    def texas(self, side: int, txx: IRect):
+        if side == 1:
+            return txx  # no texas required
+        return txx.move(Vec2(self.right_main_rel.topleft) - Vec2(self.main_section_rel.topleft))
 
     def decrease(self, side: int, res: str):
         ls = self.current.terms1 if side == 1 else self.current.terms2
@@ -336,6 +342,7 @@ class Overlay:
 
     def action_cancel(self):
         self.state.creating_contract = None
+        self.current = None
 
     def onclick(self, pos: Vec2):
         print('Recv Overlay.onclick')
