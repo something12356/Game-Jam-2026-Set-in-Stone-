@@ -13,14 +13,35 @@ from factoryMechanics import Factory, CopperMineBasic, Copper, Iron, Building
 ORE_TEXT_COLOR = 'white'
 BUILDING_TEXT_COLOR = 'white'
 
-MAIN_AREA = IRect((0, 0), (1600, 900))
-MENU_AREA = IRect((0, 900), (1600, 100))
-SC_SIZE = Vec2(MAIN_AREA.union(MENU_AREA).size)
-BASE_PLAYER_AREA = MAIN_AREA.scale_by(0.5, 0.5).move_to(topleft=(0, 0))
-PLAYER_ORES_AREA = BASE_PLAYER_AREA.scale_by(0.15, 1).move_to(topleft=BASE_PLAYER_AREA.topleft)
-PLAYER_RIGHT_AREA = BASE_PLAYER_AREA.scale_by(0.85, 1).move_to(topleft=PLAYER_ORES_AREA.topright)
-PLAYER_BUILDINGS_AREA = PLAYER_RIGHT_AREA.scale_by(1, 0.6).move_to(topleft=PLAYER_RIGHT_AREA.topleft)
-PLAYER_BUY_AREA = PLAYER_RIGHT_AREA.scale_by(1, 0.4).move_to(topleft=PLAYER_BUILDINGS_AREA.bottomleft)
+
+class ScreenInfo:
+    def from_sc_size(self, sc_size: Vec2):
+        self.sc_size = sc_size
+        self.sc_rect = IRect((0, 0), sc_size)
+        self.main_area = self.sc_rect.scale_by(1, 0.9).move_to(topleft=(0, 0))
+        self.menu_area = self.sc_rect.scale_by(1, 0.1).move_to(topleft=self.main_area.bottomleft)
+        self.base_player_area = self.main_area.scale_by(0.5, 0.5).move_to(topleft=(0, 0))
+        self.player_ores_area = self.base_player_area.scale_by(0.15, 1).move_to(
+            topleft=self.base_player_area.topleft)
+        self.player_right_area = self.base_player_area.scale_by(0.85, 1).move_to(
+            topleft=self.player_ores_area.topright)
+        self.player_buildings_area = self.player_right_area.scale_by(1, 0.6).move_to(
+            topleft=self.player_right_area.topleft)
+        self.player_buy_area = self.player_right_area.scale_by(1, 0.4).move_to(
+            topleft=self.player_buildings_area.bottomleft)
+        return self
+
+SC_INFO = ScreenInfo().from_sc_size(Vec2(1200, 750))
+
+# SC_SIZE = Vec2(1600, 900)
+# SC_RECT = IRect((0, 0), SC_SIZE)
+# MAIN_AREA = SC_RECT.scale_by(1, 0.9).move_to(topleft=(0, 0))
+# MENU_AREA = SC_RECT.scale_by(1, 0.1).move_to(topleft=MAIN_AREA.bottomleft)
+# BASE_PLAYER_AREA = MAIN_AREA.scale_by(0.5, 0.5).move_to(topleft=(0, 0))
+# PLAYER_ORES_AREA = BASE_PLAYER_AREA.scale_by(0.15, 1).move_to(topleft=BASE_PLAYER_AREA.topleft)
+# PLAYER_RIGHT_AREA = BASE_PLAYER_AREA.scale_by(0.85, 1).move_to(topleft=PLAYER_ORES_AREA.topright)
+# PLAYER_BUILDINGS_AREA = PLAYER_RIGHT_AREA.scale_by(1, 0.6).move_to(topleft=PLAYER_RIGHT_AREA.topleft)
+# PLAYER_BUY_AREA = PLAYER_RIGHT_AREA.scale_by(1, 0.4).move_to(topleft=PLAYER_BUILDINGS_AREA.bottomleft)
 
 
 def clamped_subsurf(s: pygame.Surface, r: IRect | FRect):
@@ -102,15 +123,15 @@ class Player:
             btn_rect = pygame.draw.rect(dest, (50, 50, 50), IRect(5, y, tex.width + 10, tex.height + 10))
             dest.blit(tex, (5 + 5, y + 5))
             y += tex.height + 15
-            btn_rect_outer = btn_rect.move(Vec2(PLAYER_BUY_AREA.topleft) - Vec2(0, 0))
+            btn_rect_outer = btn_rect.move(Vec2(SC_INFO.player_buy_area.topleft) - Vec2(0, 0))
             buttons.append((btn_rect_outer, m_id))
         return buttons
 
     def render_area(self, dest: pygame.Surface):
         dest.fill(self.color.lerp(pygame.Color(0, 0, 0), 0.9))
-        self.render_factories(clamped_subsurf(dest, PLAYER_BUILDINGS_AREA))
-        self.render_ores(clamped_subsurf(dest, PLAYER_ORES_AREA))
-        self.buttons = self.render_buy_buttons(clamped_subsurf(dest, PLAYER_BUY_AREA))
+        self.render_factories(clamped_subsurf(dest, SC_INFO.player_buildings_area))
+        self.render_ores(clamped_subsurf(dest, SC_INFO.player_ores_area))
+        self.buttons = self.render_buy_buttons(clamped_subsurf(dest, SC_INFO.player_buy_area))
 
     def onclick(self, pos: Vec2):
         print('Recv onclick')
@@ -127,10 +148,13 @@ def render_player_area(dest: pygame.Surface, data):  # TODO: get the data!
 
 
 def render_players_screen(screen: pygame.Surface, players: list[Player]):
-    players[0].render_area(screen.subsurface(BASE_PLAYER_AREA))
-    players[1].render_area(screen.subsurface(BASE_PLAYER_AREA.move_to(left=MAIN_AREA.w / 2)))
-    players[2].render_area(screen.subsurface(BASE_PLAYER_AREA.move_to(top=MAIN_AREA.h / 2)))
-    players[3].render_area(screen.subsurface(BASE_PLAYER_AREA.move_to(topleft=Vec2(MAIN_AREA.size) / 2)))
+    players[0].render_area(screen.subsurface(SC_INFO.base_player_area))
+    players[1].render_area(screen.subsurface(SC_INFO.base_player_area.move_to(
+        left=SC_INFO.main_area.w / 2)))
+    players[2].render_area(screen.subsurface(SC_INFO.base_player_area.move_to(
+        top=SC_INFO.main_area.h / 2)))
+    players[3].render_area(screen.subsurface(SC_INFO.base_player_area.move_to(
+        topleft=Vec2(SC_INFO.main_area.size) / 2)))
 
 
 def demo_factory():
@@ -141,18 +165,18 @@ def demo_factory():
 def main():
     # pygame setup
     pygame.init()
-    screen = pygame.display.set_mode(SC_SIZE)
+    screen = pygame.display.set_mode(SC_INFO.sc_size, pygame.RESIZABLE)
     clock = pygame.time.Clock()
     running = True
 
     p1 = Player(pygame.Color("red"), demo_factory(),
-                BASE_PLAYER_AREA)
+                SC_INFO.base_player_area)
     p2 = Player(pygame.Color("yellow"), demo_factory(),
-                BASE_PLAYER_AREA.move_to(left=MAIN_AREA.w / 2))
+                SC_INFO.base_player_area.move_to(left=SC_INFO.main_area.w / 2))
     p3 = Player(pygame.Color("green"), demo_factory(),
-                BASE_PLAYER_AREA.move_to(top=MAIN_AREA.h / 2))
+                SC_INFO.base_player_area.move_to(top=SC_INFO.main_area.h / 2))
     p4 = Player(pygame.Color("blue"), demo_factory(),
-                BASE_PLAYER_AREA.move_to(topleft=Vec2(MAIN_AREA.size) / 2))
+                SC_INFO.base_player_area.move_to(topleft=Vec2(SC_INFO.main_area.size) / 2))
     players = [p1, p2, p3, p4]
 
     i = 0
@@ -162,6 +186,9 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            if event.type == pygame.WINDOWRESIZED or event.type == pygame.WINDOWSIZECHANGED:
+                new_size = Vec2(event.x, event.y)  # hope surf got resized??
+                SC_INFO.from_sc_size(new_size)
             if event.type == pygame.MOUSEBUTTONUP:
                 pos = Vec2(event.pos)
                 for pl in players:
