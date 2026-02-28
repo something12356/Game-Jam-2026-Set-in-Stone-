@@ -28,9 +28,9 @@ class ScreenInfo:
             topleft=self.base_player_area.topleft)
         self.player_right_area = self.base_player_area.scale_by(0.85, 1).move_to(
             topleft=self.player_ores_area.topright)
-        self.player_buildings_area = self.player_right_area.scale_by(1, 0.6).move_to(
+        self.player_buildings_area = self.player_right_area.scale_by(1, 0.4).move_to(
             topleft=self.player_right_area.topleft)
-        self.player_buy_area = self.player_right_area.scale_by(1, 0.4).move_to(
+        self.player_buy_area = self.player_right_area.scale_by(1, 0.6).move_to(
             topleft=self.player_buildings_area.bottomleft)
         self.left_button_area = self.menu_area.scale_by(0.5, 1).move_to(
             topleft=self.menu_area.topleft)
