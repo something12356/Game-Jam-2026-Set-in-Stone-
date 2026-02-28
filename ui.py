@@ -421,7 +421,9 @@ def render_players_screen(screen: pygame.Surface, players: list[Player], playerT
 
 def demo_factory(name: str):
     factory1 = Factory(name, [CopperMineBasic()],
-                       [Copper(12), *(oc(0) for oc in backend.RESOURCE_CLASSES if oc != Copper)], 10)
+                       [Copper(12),
+                        *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
+                          if oc != Copper and oc != NullResource)], 10)
     return factory1
 
 def render_turnCount(dest: pygame.Surface, turn):
