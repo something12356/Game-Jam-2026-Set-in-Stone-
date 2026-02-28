@@ -2,6 +2,47 @@ import pygame
 import sys
 import math
 
+class Contract:
+    ## Party1 and party2 are the two players signing the contract
+    ## (Party1, party2 will just be the factories associated with the players)
+    ## Term1 is what party1 owes to party2
+    ## Term2 is what party2 owes to party1
+    ## Time limit is when the contract must be fulfilled by
+    def __init__(self, party1, party2, terms1, terms2, timeLimit):
+        self.party1 = party1
+        self.party2 = party2
+        self.terms1 = terms1
+        self.terms2 = terms2
+        self.timeLimit = timeLimit
+
+    ## Currently assuming all terms are just to do with ores, might want to update later to include other items
+    ## So the term format will be same as cost format for buildings at the moment
+    ## (If we decide to introduce other items)
+    def checkFulfilled(self):
+        print(self.terms1, self.terms2)
+        for term in self.terms1:
+            for ore1 in self.party1.ores:
+                if ore1.type == term[1]:
+                    if round(ore1.amount, 3) >= term[0]:
+                        ore1.amount -= term[0]
+                        for ore2 in self.party2.ores:
+                            if ore2.type == term[1]:
+                                ore2.amount += term[0]
+                    else:
+                        print("Party 1 has failed to fulfill the contract!")
+
+        for term in self.terms2:
+            for ore2 in self.party2.ores:
+                if ore2.type == term[1]:
+                    if round(ore2.amount, 3) >= term[0]:
+                        ore2.amount -= term[0]
+                        for ore1 in self.party1.ores:
+                            if ore1.type == term[1]:
+                                ore1.amount += term[0]
+                    else:
+                        print("Party 2 has failed to fulfill the contract!")
+
+
 ## Each player will have their own factory
 class Factory:
     def __init__(self, buildings: list[Building], ores: list[Ore]):
@@ -104,13 +145,28 @@ RESOURCE_CLASSES = {"Iron":Iron, "Copper":Copper}
 
 if __name__ == '__main__':
     factory1 = Factory([CopperMineBasic()], [Copper(2), Iron(0)])
+    factory2 = Factory([CopperMineBasic()], [Copper(2), Iron(0)])
+    contracts = [Contract(factory1, factory2, [(3, "Copper"), (1, "Iron")], [(2, "Copper")], 130)]
 
     t=0
     while True:
         t+=1
         print(t)
+
+        print("Player 1:\n")
         ## Only collect every 10 timesteps
+        ## Turn this whole thing into a function so we can easily run it for multiple players
         factory1.mineLoop(not(t%10))
         factory1.getOres()
         factory1.createBuilding(input("If you want to create a building type its name now\n"))
+
+        print("Player 2:\n")
+        factory2.mineLoop(not(t%10))
+        factory2.getOres()
+        factory2.createBuilding(input("If you want to create a building type its name now\n"))
+        
+        for contract in contracts:
+            if t >= contract.timeLimit:
+                contract.checkFulfilled()
+
         print("---")

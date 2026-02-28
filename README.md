@@ -1,5 +1,6 @@
 ## Ideas:
 
+- Some contracts might let you increase building capacity!
 - Move about in 2D world in video game
 - Encounters done physically
 - Multiplayer, each player controls a character
