@@ -1,10 +1,10 @@
-Buiding                  |Cost         |Production     |
-BlockedSlot              |0B           |0B             |
-CopperMineBasic          |3C           |0.5C           | 
-CopperMineAdvanced       |10C20I       |2.5C           |
-IronMine                 |20C          |0.5I           |
-TitaniumMine             |100C50I      |0.5Ti          |
-TantalumMine             |50C50I10Ti   |0.5Ta          |
+Buiding                  |Cost           |Production     |
+BlockedSlot              |0B             |0B             |
+CopperMineBasic          |3C             |0.5C           | 
+CopperMineAdvanced       |10C20I         |2.5C           |
+IronMine                 |20C            |0.5I           |
+TitaniumMine             |100C50I        |0.5Ti          |
+TantalumMine             |75C50I15Ti     |0.5Ta          |
 
 
 Initial Capacity 10 // This is missing an indicator
@@ -34,24 +34,24 @@ Any player       |D20      |100?       |Turn based (D4) |
 On turn, player can move and combat and upgrade/build/craft? 
 
 Resource cost formula: Version 1 initial
-Copper * 5 + Iron * 12 + Titanium * 300 + Tantalum * 2000 + (All 4 a set of Egg + Opal + Glow + Elbaite) * 50000 = Value
+Copper * 5 + Iron * 12 + Titanium * 300 + Tantalum * 1000 + (All 4 a set of Egg + Opal + Glow + Elbaite) * 25000 = Value
 
 On player death, they are considered to be out of the game. Special items are dropped on tile
 If other player reaches tile with item dropped can pick up 50%(round down) if from death (1 -> 1) else 100%
-All contracts with a dead player are voided
+All contracts with a dead player are 
 
 
 ##################################################################################################################
 It has come to my attention that the mines are very very slow for a projected 120 turn game (30 turns each)
-Therefore i have x5 all the factory production
+Therefore x5 all the factory production
 
 
 Current projected loadouts:
 
 Set Name        |Items contained
-Industrialist   |1 IronMine, 33 Iron 1 Copper
-Copper Baron    |1 CopperMineBasic, 97 Copper
-Jumpstart       |1 CopperMineAdvanced, 15 Iron, 6 Copper
+Industrialist   |1 IronMine, 30 Iron 5 Copper
+Copper Baron    |1 CopperMineBasic, 95 Copper
+Jumpstart       |1 CopperMineAdvanced, 15 Iron, 5 Copper
 Architect       |1 IronMine, 2 extra slots
 Specialist      |1 CopperMineBasic, 1 extra slot, 10 Iron, 33 Copper
 Lucky Runner    |1 Dragon Egg, 1 Fire Opal, 1 Glow rock, 1 Elbaite
