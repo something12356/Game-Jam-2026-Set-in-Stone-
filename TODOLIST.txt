@@ -20,3 +20,5 @@ Need a way to show 'errors' e.g. if player doesn't have enough resources, or all
 
 Need proper turns not time-based but text-turn button
 
+Petrified button??
+

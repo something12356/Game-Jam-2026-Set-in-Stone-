@@ -19,8 +19,10 @@ class ScreenInfo:
     def from_sc_size(self, sc_size: Vec2):
         self.sc_size = sc_size
         self.sc_rect = IRect((0, 0), sc_size)
-        self.turnCount_area = self.sc_rect.move_to(height=25, topleft=(0,0))
-        self.rem_area = self.sc_rect.move_to(height=self.sc_rect.height-25, bottom=self.sc_rect.bottom)
+        self.top_area = self.sc_rect.move_to(height=50, topleft=(0,0))
+        self.turnCount_area = self.top_area.scale_by(0.5, 1).move_to(topleft=self.top_area.topleft)
+        self.next_turn_area = self.top_area.scale_by(0.5, 1).move_to(topright=self.top_area.topright)
+        self.rem_area = self.sc_rect.move_to(height=self.sc_rect.height-self.turnCount_area.height, bottom=self.sc_rect.bottom)
         self.main_area = self.rem_area.scale_by(1, 0.9).move_to(topleft=self.turnCount_area.bottomleft)
         self.menu_area = self.rem_area.scale_by(1, 0.1).move_to(topleft=self.main_area.bottomleft)
         self.base_player_area = self.main_area.scale_by(0.5, 0.5).move_to(topleft=self.main_area.topleft)
@@ -104,6 +106,7 @@ def abbreviate(s: str):
 @dataclasses.dataclass
 class State:
     creating_contract: Factory | None = None
+    req_next_turn: bool = False
 
 
 @dataclasses.dataclass
@@ -579,11 +582,56 @@ def demo_factory(name: str):
                           if oc != Copper and oc != NullResource)], 10)
     return factory1
 
-def render_turnCount(dest: pygame.Surface, turn):
-    font = load_from_fontspec('Helvetica', 'sans-serif', align=pygame.FONT_CENTER)
-    text = f'Turn {turn}'
-    rendered = font.render(text, antialias=True, color='white', wraplength=dest.width - 5)
-    dest.blit(rendered, (3,2))
+
+@dataclasses.dataclass
+class Topbar:
+    area_getter: Callable[[], IRect]
+    state: State
+
+    def begin(self):
+        self.buttons: list[tuple[IRect, Callable[[], None]]] = []
+
+    @property
+    def area(self):
+        return self.area_getter()
+
+    def render(self, dest: pygame.Surface, turn: int):
+        self.begin()
+        self.render_turn_count(clamped_subsurf(dest, SC_INFO.turnCount_area), turn)
+        self.render_next_turn(clamped_subsurf(dest, SC_INFO.next_turn_area))
+
+    def render_turn_count(self, dest: pygame.Surface, turn: int):
+        font = load_from_fontspec('Helvetica', 'sans-serif', align=pygame.FONT_CENTER)
+        text = f'Turn {turn}'
+        rendered = font.render(text, antialias=True, color='white', wraplength=dest.width - 5)
+        dest.blit(rendered, rendered.get_rect().move_to(center=dest.get_rect().center))
+
+    def render_next_turn(self, dest: pygame.Surface):
+        cr = pygame.draw.rect(dest, Color(50, 50, 50), dest.get_rect().inflate(-8, -8))
+        tex = load_from_fontspec('Helvetica', 'sans-serif').render(
+            'Next Turn', True, 'white'
+        )
+        dest.blit(tex, tex.get_rect().move_to(center=dest.get_rect().center))
+        self.buttons += [(cr.move(Vec2(SC_INFO.next_turn_area.topleft) - SC_INFO.top_area.topleft),
+                          self.next_turn_action)]
+
+    def next_turn_action(self):
+        self.state.req_next_turn = True
+
+    def onclick(self, pos: Vec2):
+        print('Recv Topbar.onclick')
+        c_idx = IRect(pos, (1, 1)).collidelist([r for r, _name in self.buttons])
+        if c_idx == -1:
+            print(pos, [r for r, _name in self.buttons])
+            return
+        _, action = self.buttons[c_idx]
+        action()
+
+# def render_turnCount(dest: pygame.Surface, turn):
+#     font = load_from_fontspec('Helvetica', 'sans-serif', align=pygame.FONT_CENTER)
+#     text = f'Turn {turn}'
+#     rendered = font.render(text, antialias=True, color='white', wraplength=dest.width - 5)
+#     dest.blit(rendered, rendered.get_rect().move_to(center=dest.get_rect().center))
 
 
 def main():
@@ -611,6 +659,7 @@ def main():
     players = [p1, p2, p3, p4]
     contracts.append(Contract(p1.factory, p2.factory, [(3, "Copper"), (1, "Iron")], [(2, "Copper"), (1, "Increase slot")], 130))
     bm = BottomMenu(lambda: SC_INFO.menu_area)
+    tb = Topbar(lambda: SC_INFO.top_area, state)
     ol = Overlay(lambda: SC_INFO.overlay_area, state, players)
     olf = FinalContractAgreement(lambda: SC_INFO.overlay_area, state, players)
 
@@ -640,6 +689,8 @@ def main():
                         pl.onclick(pos - pl.area.topleft)
                     if bm.area.collidepoint(pos):
                         bm.onclick(pos - bm.area.topleft)
+                    if tb.area.collidepoint(pos):
+                        tb.onclick(pos - tb.area.topleft)
 
         i += 1
 
@@ -650,15 +701,17 @@ def main():
         #     print('CC')
         #     state.creating_contract = False
 
-        render_turnCount(clamped_subsurf(screen, SC_INFO.turnCount_area), t)
+        # render_turnCount(clamped_subsurf(screen, SC_INFO.turnCount_area), t)
         # RENDER YOUR GAME HERE
-        if (i + 1) % 400 == 0 and players[playerTurn].incoming_contracts == []:
+        if state.req_next_turn:
+            state.req_next_turn = False
             for p in players:
                 p.factory.mineLoop(collecting=True)
             t += 1
             ol.t = t
             olf.t = t
         bm.display(clamped_subsurf(screen, bm.area))
+        tb.render(clamped_subsurf(screen, tb.area), t)
         if bm.screen_num == 0:
             render_players_screen(screen, players, playerTurn)
         else:
