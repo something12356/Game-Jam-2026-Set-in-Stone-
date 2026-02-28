@@ -309,10 +309,12 @@ class Overlay:
             dest.blit(tex, tex.get_rect(centerx=inner.centerx, top=y))
             y += tex.height + 10  # 5 pad each
         else:
-            pygame.draw.aalines(dest, pygame.Color(50, 50, 50), True,
-                                [(15, y + 11), (23, y + 19), (23, y + 3)])
-            pygame.draw.aalines(dest, pygame.Color(50, 50, 50), True,
-                                [(dest.width - 16, y + 11), (dest.width - 24, y + 19), (dest.width - 24, y + 3)])
+            lpt = [(15, y + 11), (23, y + 19), (23, y + 3)]
+            lbb = pygame.draw.aalines(dest, pygame.Color(50, 50, 50), True, lpt)
+            pygame.draw.polygon(dest, pygame.Color(50, 50, 50), lpt)
+            rpt = [(dest.width - 16, y + 11), (dest.width - 24, y + 19), (dest.width - 24, y + 3)]
+            pygame.draw.polygon(dest, pygame.Color(50, 50, 50), rpt)
+            rbb = pygame.draw.aalines(dest, pygame.Color(50, 50, 50), True, rpt)
             tex = load_from_fontspec('Helvetica', 'sans-serif',
                                      align=pygame.FONT_CENTER).render(
                 f'{self.current.party2.name}', True, 'white'
@@ -322,6 +324,8 @@ class Overlay:
                                           top=y).inflate(2, 2))
             dest.blit(tex, tex.get_rect(centerx=inner.centerx, top=y))
             y += tex.height + 10  # 5 pad each
+
+            self.buttons += [(self.texas(2, lbb), self.pleft), (self.texas(2, rbb), self.pright)]
         max_w = 10
         ys = []
         for n, t in terms:
@@ -356,6 +360,14 @@ class Overlay:
                              border_radius=8)
             dest.blit(tex, txr)
             self.buttons += [(self.texas(side, txx), lambda t=t: self.increase(side, t))]
+
+    def pleft(self):
+        self.current.party2 = self.other_players[
+            (self.other_players.index(self.current.party2) + 1) % len(self.other_players)]
+
+    def pright(self):
+        self.current.party2 = self.other_players[
+            (self.other_players.index(self.current.party2) + 1) % len(self.other_players)]
 
     def texas(self, side: int, txx: IRect):
         if side == 1:
@@ -436,10 +448,6 @@ class BottomMenu:
             return
         _, action = self.buttons[c_idx]
         action()
-
-
-def render_player_area(dest: pygame.Surface, data):  # TODO: get the data!
-    dest.fill(data)
 
 
 def render_players_screen(screen: pygame.Surface, players: list[Player], playerTurn):
