@@ -252,17 +252,33 @@ class Overlay:
         if not self.state.creating_contract:
             return
         # CANCEL
-        pygame.draw.rect(dest, pygame.Color(50, 50, 50), self.cancel_button_rel.inflate(-4, -4))
+        cbb = self.cancel_button_rel.inflate(-4, -4)
+        pygame.draw.rect(dest, pygame.Color(50, 50, 50), cbb)
         tex = load_from_fontspec('Helvetica', 'sans-serif', align=pygame.FONT_CENTER).render(
             'Cancel', True, 'white'
         )
         dest.blit(tex, tex.get_rect(center=self.cancel_button_rel.center))
         # SEND
-        pygame.draw.rect(dest, pygame.Color(50, 50, 50), self.send_button_rel.inflate(-4, -4))
+        sbb = self.send_button_rel.inflate(-4, -4)
+        pygame.draw.rect(dest, pygame.Color(50, 50, 50), sbb)
         tex = load_from_fontspec('Helvetica', 'sans-serif', align=pygame.FONT_CENTER).render(
             'Send', True, 'white'
         )
         dest.blit(tex, tex.get_rect(center=self.send_button_rel.center))
+        # Register buttons, ig
+        self.buttons += [(cbb, self.action_cancel)]
+
+    def action_cancel(self):
+        self.state.creating_contract = False
+
+    def onclick(self, pos: Vec2):
+        print('Recv Overlay.onclick')
+        c_idx = IRect(pos, (1, 1)).collidelist([r for r, _name in self.buttons])
+        if c_idx == -1:
+            print(pos, [r for r, _name in self.buttons])
+            return
+        _, action = self.buttons[c_idx]
+        action()
 
 
 @dataclasses.dataclass
@@ -370,10 +386,10 @@ def main():
                 new_size = Vec2(event.x, event.y)  # hope surf got resized??
                 SC_INFO.from_sc_size(new_size)
             if event.type == pygame.MOUSEBUTTONUP:
+                pos = Vec2(event.pos)
                 if state.creating_contract:
-                    ...  # TODO!!!!!!!!!!
+                    ol.onclick(pos - ol.area.topleft)
                 else:
-                    pos = Vec2(event.pos)
                     for pl in players:
                         if pl.area.collidepoint(pos):
                             pl.onclick(pos - pl.area.topleft)
