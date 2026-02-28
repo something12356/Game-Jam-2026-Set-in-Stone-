@@ -1,0 +1,69 @@
+PLAYER HANDBOOK: THE INDUSTRIAL SURVIVAL PROTOCOL
+This protocol governs the 120-turn extraction cycle (30 turns per player). Your objective is to accumulate the highest net worth through raw ore and rare gem sets. Strategy is asymmetrical: some start with wealth, others with capacity, and one with a target on their back.
+________________________________________
+I. THE LOADOUTS (CHOOSE ONE)
+Each player randomly obtains a starting profile. 
+Slots 11 and higher are "Safe Zones"—they are immune to debt-collection.
+Set	Designation	Starting Inventory	Total Slots	Starting Building
+A	Industrialist
+19%	30 Iron 5 Copper	10	1 Iron Mine
+B	Copper Baron
+19%	95 Copper	10	1 Copper Mine Basic
+C	Jumpstart
+19%	15 Iron 5 Copper	10	1 Copper Mine Advanced
+D	Architect
+19%	0 Resources	12	1 Iron Mine
+(2 Extra Slots)
+E	Specialist
+19%	10 Iron 33 Copper	11	1 Copper Mine Basic
+(1 Extra Slot)
+L	Lucky Winner
+5%	The Gem Set*	10	None
+The Gem Set: 1 Dragon Egg, 1 Ethiopian Fire Opal, 1 Yooperlite (Glow), 1 Elbaite. (The Balrog spawns at Turn 5 if Loadout L is in play).
+________________________________________
+II. THE TURN SEQUENCE
+Actions must be performed in this exact order. Deviating from the sequence is a protocol violation.
+1.	Phase 1: Specials: Use Elbaite (Heal 30), Secret Tunnel, Egg (Convert to other Special), or Fire Opal (Double building output).
+2.	Phase 2: Attack: Only if near an enemy. Roll D10 x 10 for damage (0 to 90) 
+3.	Phase 3: Hazards: Take damage from all applicable sources:
+o	Balrog: Fixed 40 DMG.
+o	Gorgon: 15 DMG + Petrify (Skip next turn. 1-turn cooldown applies).
+o	Lava: 10 DMG (Occurs every turn you occupy a Lava tile).
+4.	Phase 4: Movement: Roll D4. Move that many tiles.
+5.	Phase 5: Logistics:
+o	Contract Check: Fulfill due contracts or trigger the Debt Collector.
+o	Production: All active mines produce ore.
+o	Build/Trade: Construct mines or trade Empty Slots and Items. 
+(Occupied slots cannot be traded).
+________________________________________
+III. THE RESOURCE ECONOMY
+Buildings contribute 0 points to the final score. Only held ore and gems count.
+Ore	Value (Score)	Building Cost	Production / Tick
+Copper	5	Basic: 15C 
+Advanced: 50C + 10I	Basic: 0.5 
+Advanced: 2.5
+Iron	12	40C	0.5
+Titanium	300	100C + 50I	0.5
+Tantalum	2000	50C + 50I + 10Ti	0.5
+________________________________________
+IV. DEBT & SLOT SOVEREIGNTY
+Players may sign contracts to receive resources and fulfil them now or later. Failure to pay in the allotted time results in a Blocked Slot. Both sides have to agree for a contract to be set in stone.
+•	The Debt Collector: If you have no empty slots (1–10), roll a D10. That building is destroyed and the slot is blocked.
+•	The Safe Zone: Any slot numbered 11 or higher cannot be blocked or destroyed.
+•	Universal Trading: Any player may trade empty slots to any other player. You cannot trade away your final slot; you must retain a minimum of 1. Trades can only occur through contracts and all contracts take up a slot and cannot be revoked, even on fail.
+________________________________________
+V. THE BEASTS & THE ENVIRONMENT
+Entity	DMG	HP	Behavior / Effect
+Balrog (Boss)	40	500	Moves via dice. 
+Triggered if one of each special exists on players
+or turn count.
+Gorgon (Elite)	15	150	Petrify: Forces a turn skip. (Cannot stun-lock).
+Lava (Env)	10	—	Deals 10 damage when stood on.
+________________________________________
+VI. SCORING & VICTORY
+•	Gem Set Bonus: Completing a set (Egg, Opal, Glow, Elbaite) = 50,000 Points. Stackable
+•	Death Protocol: If a player dies, they drop 50% of Special Items rounded down
+(The minimum round down is 1) and they are out of the game.
+
+#############################################################################################################
+Note: Looks way better on a word document
