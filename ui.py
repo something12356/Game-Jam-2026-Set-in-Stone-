@@ -18,9 +18,11 @@ class ScreenInfo:
     def from_sc_size(self, sc_size: Vec2):
         self.sc_size = sc_size
         self.sc_rect = IRect((0, 0), sc_size)
-        self.main_area = self.sc_rect.scale_by(1, 0.9).move_to(topleft=(0, 0))
-        self.menu_area = self.sc_rect.scale_by(1, 0.1).move_to(topleft=self.main_area.bottomleft)
-        self.base_player_area = self.main_area.scale_by(0.5, 0.5).move_to(topleft=(0, 0))
+        self.turnCount_area = self.sc_rect.move_to(height=25, topleft=(0,0))
+        self.rem_area = self.sc_rect.move_to(height=self.sc_rect.height-25, bottom=self.sc_rect.bottom)
+        self.main_area = self.rem_area.scale_by(1, 0.9).move_to(topleft=self.turnCount_area.bottomleft)
+        self.menu_area = self.rem_area.scale_by(1, 0.1).move_to(topleft=self.main_area.bottomleft)
+        self.base_player_area = self.main_area.scale_by(0.5, 0.5).move_to(topleft=self.main_area.topleft)
         self.player_ores_area = self.base_player_area.scale_by(0.15, 1).move_to(
             topleft=self.base_player_area.topleft)
         self.player_right_area = self.base_player_area.scale_by(0.85, 1).move_to(
@@ -323,6 +325,12 @@ def demo_factory(name: str):
     factory1 = Factory(name, [CopperMineBasic()], [Copper(2), Iron(0)], 10)
     return factory1
 
+def render_turnCount(dest: pygame.Surface, turn):
+    font = load_from_fontspec('Helvetica', 'sans-serif', align=pygame.FONT_CENTER)
+    text = f'Turn {turn}'
+    rendered = font.render(text, antialias=True, color='white', wraplength=dest.width - 5)
+    dest.blit(rendered, (3,2))
+
 
 def main():
     # pygame setup
@@ -336,16 +344,17 @@ def main():
     p1 = Player(pygame.Color("Red"), demo_factory('Red'),
                 lambda: SC_INFO.base_player_area, contracts, state)
     p2 = Player(pygame.Color("Yellow"), demo_factory('Yellow'),
-                lambda: SC_INFO.base_player_area.move_to(left=SC_INFO.main_area.w / 2), contracts, state)
+                lambda: SC_INFO.base_player_area.move(SC_INFO.main_area.w / 2, 0), contracts, state)
     p3 = Player(pygame.Color("Green"), demo_factory('Green'),
-                lambda: SC_INFO.base_player_area.move_to(top=SC_INFO.main_area.h / 2), contracts, state)
+                lambda: SC_INFO.base_player_area.move(0, SC_INFO.main_area.h / 2), contracts, state)
     p4 = Player(pygame.Color("Blue"), demo_factory('Blue'),
-                lambda: SC_INFO.base_player_area.move_to(topleft=Vec2(SC_INFO.main_area.size) / 2), contracts, state)
+                lambda: SC_INFO.base_player_area.move(Vec2(SC_INFO.main_area.size) / 2), contracts, state)
     players = [p1, p2, p3, p4]
     contracts.append(Contract(p1.factory, p2.factory, [(3, "Copper"), (1, "Iron")], [(2, "Copper"), (1, "Increase slot")], 130))
     bm = BottomMenu(lambda: SC_INFO.menu_area)
 
     i = 0
+    t = 0
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -370,10 +379,12 @@ def main():
             print('CC')
             state.creating_contract = False
 
+        render_turnCount(clamped_subsurf(screen, SC_INFO.turnCount_area), t)
         # RENDER YOUR GAME HERE
         if (i + 1) % 10 == 0:
             for p in players:
                 p.factory.mineLoop(collecting=True)
+            t += 1
         bm.display(clamped_subsurf(screen, bm.area))
         if bm.screen_num == 0:
             render_players_screen(screen, players)
