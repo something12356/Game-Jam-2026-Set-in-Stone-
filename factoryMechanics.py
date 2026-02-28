@@ -233,7 +233,7 @@ class TitaniumMine(Building):
     productionRate = 0.1
 
     def __init__(self):
-        super().__init__("Iron Mine", Iron, 0.1)
+        super().__init__("Titanium Mine", Titanium, 0.1)
 
 class TantalumMine(Building):
     cost = [(100, "Iron"), (50, "Titanium")]
@@ -242,7 +242,7 @@ class TantalumMine(Building):
     productionRate = 0.1
 
     def __init__(self):
-        super().__init__("Iron Mine", Iron, 0.1)
+        super().__init__("Tantalum Mine", Tantalum, 0.1)
 
 
 MINE_CLASSES = {"CopperMineBasic": CopperMineBasic, "CopperMineAdvanced":CopperMineAdvanced, "IronMine":IronMine, "TitaniumMine":TitaniumMine, "TantalumMine":TantalumMine, "BlockedSlot": BlockedSlot}
