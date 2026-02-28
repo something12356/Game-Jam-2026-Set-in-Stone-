@@ -149,8 +149,8 @@ class Player:
             buttons.append((btn_rect_outer, lambda m_id=m_id: self.factory.createBuilding(m_id)))
         return buttons
 
-    def render_area(self, dest: pygame.Surface):
-        dest.fill(self.color.lerp(pygame.Color(0, 0, 0), 0.9))
+    def render_area(self, dest: pygame.Surface, brightness):
+        dest.fill(self.color.lerp(pygame.Color(0, 0, 0), brightness))
         self.render_factories(clamped_subsurf(dest, SC_INFO.player_buildings_area))
         self.render_ores(clamped_subsurf(dest, SC_INFO.player_ores_area))
         self.buttons += self.render_buy_buttons(clamped_subsurf(dest, SC_INFO.player_buy_area))
@@ -196,8 +196,8 @@ class Player:
     def on_new_clicked(self):
         self.state.creating_contract = self.factory
 
-    def render_contracts_area(self, dest: pygame.Surface):
-        dest.fill(self.color.lerp(pygame.Color(0, 0, 0), 0.9))
+    def render_contracts_area(self, dest: pygame.Surface, brightness):
+        dest.fill(self.color.lerp(pygame.Color(0, 0, 0), brightness))
         self.render_contracts(clamped_subsurf(dest, SC_INFO.contract_list_area))
         self.render_new_contract_button(clamped_subsurf(dest, SC_INFO.contract_new_area))
 
@@ -408,11 +408,15 @@ def render_player_area(dest: pygame.Surface, data):  # TODO: get the data!
     dest.fill(data)
 
 
-def render_players_screen(screen: pygame.Surface, players: list[Player]):
+def render_players_screen(screen: pygame.Surface, players: list[Player], playerTurn):
     for p in players:
         p.begin()
         # p.render_area(clamped_subsurf(screen, p.area))
-        p.render_area(clamped_subsurf(screen, p.area))
+        if players[playerTurn] == p:
+            brightness = 0.3
+        else:
+            brightness = 0.9
+        p.render_area(clamped_subsurf(screen, p.area), brightness)
 
 
 def demo_factory(name: str):
@@ -487,12 +491,16 @@ def main():
             t += 1
         bm.display(clamped_subsurf(screen, bm.area))
         if bm.screen_num == 0:
-            render_players_screen(screen, players)
+            render_players_screen(screen, players, playerTurn)
         else:
             assert bm.screen_num == 1
             for p in players:
                 p.begin()
-                p.render_contracts_area(clamped_subsurf(screen, p.area))
+                if p == players[playerTurn]:
+                    brightness = 0.3
+                else:
+                    brightness = 0.9
+                p.render_contracts_area(clamped_subsurf(screen, p.area), brightness)
             # IMPORTANT: LAST
             if state.creating_contract:
                 s = pygame.Surface(screen.size, pygame.SRCALPHA)

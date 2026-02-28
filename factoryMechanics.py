@@ -63,6 +63,7 @@ class Factory:
         self.buildings = buildings
         self.ores = ores
         self.capacity = capacity
+        self.boosted = False
 
     # Creates building based on what player selects and if they have enough ores to buy it + if they are not above the current building limit
     def createBuilding(self, buildingType):
@@ -90,9 +91,11 @@ class Factory:
     ## Spend a fire opal to increase production of a machine
     def increaseProduction(self, buildingNumber):
         for ore in self.ores:
-            if ore.type == FireOpal:
+            if ore.type == FireOpal and self.buildings[buildingNumber].boosted == False:
                 if ore.amount >= 1:
                     self.buildings[buildingNumber].productionRate *= 2
+                    self.buildings[buildingNumber].boosted = True
+                    ore.amount -= 1
 
     ## All the buildings mine their ores, collects ore from building periodically
     def mineLoop(self, collecting=False):
