@@ -132,7 +132,7 @@ def render_players_screen(screen: pygame.Surface, players: list[Player]):
 
 
 def demo_factory():
-    factory1 = Factory([CopperMineBasic()], [Copper(2), Iron(0)])
+    factory1 = Factory([CopperMineBasic()], [Copper(2), Iron(0)], 10)
     return factory1
 
 

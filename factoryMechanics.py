@@ -120,9 +120,11 @@ class Iron(Ore):
     def __init__(self, amount):
         super().__init__(amount, "Iron", (61, 91, 114))
 
-class Blocked(Ore):
+class NullResource(Ore):
+    name = "NullResource"
+
     def __init__(self, amount):
-        super().__init__(amount, "Blocked", (0, 0, 0))
+        super().__init__(amount, "NullResource", (0, 0, 0))
 
 # Add capability to mine multiple ores with same building
 class Building:
@@ -139,10 +141,14 @@ class Building:
     def mine(self):
         self.ore.amount += self.productionRate
 
-class Block(Building):
+class BlockedSlot(Building):
+    cost = [(0, "NullResource")]
+    name = "(Blocked Slot)"
+    produces = NullResource
+    productionRate = 0
+
     def __init__(self):
-        super().__init__("Block", Blocked, 0)
-        self.cost = [(0, "Blocked")]
+        super().__init__("BlockedSlot", NullResource, 0)
 
 class CopperMineBasic(Building):
     cost = [(3, "Copper")]
@@ -173,13 +179,13 @@ class IronMine(Building):
         super().__init__("Iron Mine", Iron, 0.1)
 
 
-classes = {"Iron":Iron, "Copper":Copper, "CopperMineBasic": CopperMineBasic, "CopperMineAdvanced":CopperMineAdvanced, "IronMine":IronMine, "Block":Block}
-MINE_CLASSES = {"CopperMineBasic": CopperMineBasic, "CopperMineAdvanced":CopperMineAdvanced, "IronMine":IronMine, "Block": Block}
-RESOURCE_CLASSES = {"Iron":Iron, "Copper":Copper, "Blocked": Blocked}
+classes = {"Iron":Iron, "Copper":Copper, "CopperMineBasic": CopperMineBasic, "CopperMineAdvanced":CopperMineAdvanced, "IronMine":IronMine, "Block":BlockedSlot}
+MINE_CLASSES = {"CopperMineBasic": CopperMineBasic, "CopperMineAdvanced":CopperMineAdvanced, "IronMine":IronMine, "BlockedSlot": BlockedSlot}
+RESOURCE_CLASSES = {"Iron":Iron, "Copper":Copper, "NullResource": NullResource}
 
 if __name__ == '__main__':
-    factory1 = Factory([CopperMineBasic()], [Copper(2), Iron(0)])
-    factory2 = Factory([CopperMineBasic()], [Copper(2), Iron(0)])
+    factory1 = Factory([CopperMineBasic()], [Copper(2), Iron(0)], 10)
+    factory2 = Factory([CopperMineBasic()], [Copper(2), Iron(0)], 10)
     contracts = [Contract(factory1, factory2, [(3, "Copper"), (1, "Iron")], [(2, "Copper")], 130)]
 
     t=0
