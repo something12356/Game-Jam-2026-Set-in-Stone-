@@ -20,7 +20,7 @@ class Contract:
                 ', '.join(f'{num} {resource}' for num, resource in self.terms1)
                 + f'\n{self.party2.name} gives you:\n    ' +
                 ', '.join(f'{num} {resource}' for num, resource in self.terms2)
-                + f'\nEvery {self.timeLimit} turns')
+                + f'\nBy turn {self.timeLimit}')
 
     ## Currently assuming all terms are just to do with ores, might want to update later to include other items
     ## So the term format will be same as cost format for buildings at the moment
@@ -202,7 +202,7 @@ class CopperMineBasic(Building):
     cost = [(3, "Copper")]
     name = 'Basic Copper Mine'
     produces = Copper
-    productionRate = 0.1
+    productionRate = 0.5
 
     def __init__(self):
         super().__init__("Basic Copper Mine", Copper, 0.1)
@@ -212,7 +212,7 @@ class CopperMineAdvanced(Building):
     cost = [(10, "Copper"), (5, "Iron")]
     name = 'Advanced Copper Mine'
     produces = Copper
-    productionRate = 0.5
+    productionRate = 2.5
 
     def __init__(self):
         super().__init__("Advanced Copper Mine", Copper, 0.5)
@@ -221,7 +221,7 @@ class IronMine(Building):
     cost = [(20, "Copper")]
     name = 'Iron Mine'
     produces = Iron
-    productionRate = 0.1
+    productionRate = 0.5
 
     def __init__(self):
         super().__init__("Iron Mine", Iron, 0.1)
@@ -230,7 +230,7 @@ class TitaniumMine(Building):
     cost = [(100, "Copper"), (50, "Iron")]
     name = 'Titanium Mine'
     produces = Titanium
-    productionRate = 0.1
+    productionRate = 0.5
 
     def __init__(self):
         super().__init__("Titanium Mine", Titanium, 0.1)
@@ -239,15 +239,16 @@ class TantalumMine(Building):
     cost = [(100, "Iron"), (50, "Titanium")]
     name = 'Tantalum Mine'
     produces = Tantalum
-    productionRate = 0.1
+    productionRate = 0.5
 
     def __init__(self):
         super().__init__("Tantalum Mine", Tantalum, 0.1)
 
 
 MINE_CLASSES = {"CopperMineBasic": CopperMineBasic, "CopperMineAdvanced":CopperMineAdvanced, "IronMine":IronMine, "TitaniumMine":TitaniumMine, "TantalumMine":TantalumMine, "BlockedSlot": BlockedSlot}
-RESOURCE_CLASSES = {"Iron":Iron, "Copper":Copper, "Titanium":Titanium, "Tantalum":Tantalum, "NullResource": NullResource}
-TRADE_POSSIBILITIES = (set(RESOURCE_CLASSES) - {"NullResource"}) | {"Increase slot"}
+RESOURCE_CLASSES = {"Copper":Copper, "Iron":Iron, "Titanium":Titanium, "Tantalum":Tantalum, "NullResource": NullResource}
+TRADE_POSSIBILITIES = list(RESOURCE_CLASSES) + ["Increase slot"]
+TRADE_POSSIBILITIES.remove('NullResource')
 
 if __name__ == '__main__':
     factory1 = Factory("p1", [CopperMineBasic()], [Copper(2), Iron(0), Titanium(0), Tantalum(0), FireOpal(0)], 10)
@@ -274,7 +275,7 @@ if __name__ == '__main__':
 
 
         for contract in contracts:
-            if t >= contract.timeLimit:
+            if t == contract.timeLimit:
                 contract.checkFulfilled()
 
         print("---")
