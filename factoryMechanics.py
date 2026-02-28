@@ -93,15 +93,15 @@ class Iron(Ore):
 
 classes = {"Iron":Iron, "Copper":Copper, "CopperMineBasic": CopperMineBasic, "CopperMineAdvanced":CopperMineAdvanced, "IronMine":IronMine}
 
-factory1 = Factory([CopperMineBasic()], [Copper(2), Iron(0)])
+if __name__ == '__main__':
+    factory1 = Factory([CopperMineBasic()], [Copper(2), Iron(0)])
 
-t=0
-while True:
-    t+=1
-    print(t)
-    ## Only collect every 10 timesteps
-    factory1.mineLoop(not(t%10))
-    factory1.getOres()
-    factory1.createBuilding(input("If you want to create a building type its name now\n"))
-    print("---")
-
+    t=0
+    while True:
+        t+=1
+        print(t)
+        ## Only collect every 10 timesteps
+        factory1.mineLoop(not(t%10))
+        factory1.getOres()
+        factory1.createBuilding(input("If you want to create a building type its name now\n"))
+        print("---")
