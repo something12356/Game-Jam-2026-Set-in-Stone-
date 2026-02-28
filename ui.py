@@ -8,7 +8,8 @@ from pygame import Vector2 as Vec2, Color
 from pygame import FRect, Rect as IRect
 
 import factoryMechanics as backend
-from factoryMechanics import Factory, CopperMineBasic, Copper, Iron, Building, Contract
+from factoryMechanics import Factory, CopperMineBasic, Copper, Building, Contract, \
+    NullResource
 
 ORE_TEXT_COLOR = 'white'
 BUILDING_TEXT_COLOR = 'white'
