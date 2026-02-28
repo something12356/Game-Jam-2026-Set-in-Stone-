@@ -1,5 +1,6 @@
 import pygame
 import sys
+import math
 
 class Factory:
     def __init__(self, buildings, ores):
@@ -9,12 +10,12 @@ class Factory:
     def createBuilding(self, buildingType):
         if buildingType == "":
             return
-        building = getattr(sys.modules[__name__], buildingType)()
+        building = classes[buildingType]()
         cost = building.cost
         for oreCost in cost:
             for ore in self.ores:
                 if ore.type == oreCost[1]:
-                    if ore.amount >= oreCost[0]:
+                    if round(ore.amount, 2) >= oreCost[0]:
                         continue
                     else:
                         print("You cannot afford this!")
@@ -45,14 +46,11 @@ class Factory:
 
     def getOres(self):
         for building in self.buildings:
-            print(f'{building.name} | {building.ore.type} | {building.ore.amount}')
+            print(f'{building.name} | {building.ore.type} | {building.ore.amount:.2f}')
 
         print('')
         for i in self.ores:
-            print(f'Total {i.type} | {i.amount:.2f}')
-
-
-        
+            print(f'Total {i.type} | {i.amount:.2f}')   
     
 # Add capability to mine multiple ores with same building
 class Building:
@@ -94,6 +92,8 @@ class Iron(Ore):
     def __init__(self, amount):
         super().__init__(amount, "Iron", "grey")
 
+classes = {"Iron":Iron, "Copper":Copper, "CopperMineBasic": CopperMineBasic, "CopperMineAdvanced":CopperMineAdvanced, "IronMine":IronMine}
+
 factory1 = Factory([CopperMineBasic()], [Copper(2), Iron(0)])
 
 t=0
@@ -103,6 +103,6 @@ while True:
     ## Only collect every 10 timesteps
     factory1.mineLoop(not(t%10))
     factory1.getOres()
-    factory1.createBuilding(input("If you want to create a building type its name now"))
+    factory1.createBuilding(input("If you want to create a building type its name now\n"))
     print("---")
 
