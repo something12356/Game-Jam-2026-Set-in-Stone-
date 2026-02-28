@@ -26,7 +26,7 @@ class Factory:
 class Building:
     def __init__(self, name, oreType, productionRate):
         self.name = name
-        self.ore = Ore(0, oreType)
+        self.ore = oreType(0)
         self.productionRate = productionRate
 
     def mine(self):
@@ -34,15 +34,24 @@ class Building:
 
 ## Have subclasses for different types of ores
 class Ore:
-    def __init__(self, amount, type):
+    def __init__(self, amount, type, colour):
         self.amount = amount
         self.type = type
+        self.colour = colour
+
+class Copper(Ore):
+    def __init__(self, amount):
+        super().__init__(amount, "Copper", "orange")
+
+class Iron(Ore):
+    def __init__(self, amount):
+        super().__init__(amount, "Iron", "grey")
 
 factory1 = Factory([])
 
-factory1.createBuilding("building1", "ore1", 1)
-factory1.createBuilding("building2", "ore2", 2)
-factory1.createBuilding("building3", "ore1", 3)
+factory1.createBuilding("building1", Copper, 1)
+factory1.createBuilding("building2", Iron, 2)
+factory1.createBuilding("building3", Copper, 3.14159265)
 
 while True:
     factory1.mineLoop()
