@@ -79,9 +79,11 @@ def _load_from_fontspec(*fontspec: str, size=20):
             return fnt
 
 
-def load_from_fontspec(*fontspec: str, size=20, align: int = pygame.FONT_LEFT):
+def load_from_fontspec(*fontspec: str, size=20, align: int = pygame.FONT_LEFT,
+                       strikethrough: bool = False):
     f = _load_from_fontspec(*fontspec, size=size)
     f.align = align
+    f.strikethrough = strikethrough
     return f
 
 
@@ -235,6 +237,9 @@ class Overlay:
     current: Contract | None = None
     t: int = 0
 
+    CANCEL_TEXT = 'Cancel'
+    SEND_TEXT = 'Send'
+
     def begin(self):
         self.buttons: list[tuple[IRect, Callable[[], None]]] = []
 
@@ -286,6 +291,10 @@ class Overlay:
     def current_player(self):
         return self.state.creating_contract
 
+    @property
+    def disabled(self):
+        return self.current.is_null()
+
     def display(self, dest: pygame.Surface):
         self.begin()
         if self.current_player is None:
@@ -299,14 +308,16 @@ class Overlay:
         cbb = self.cancel_button_rel.inflate(-4, -4)
         pygame.draw.rect(dest, pygame.Color(50, 50, 50), cbb)
         tex = load_from_fontspec('Helvetica', 'sans-serif', align=pygame.FONT_CENTER).render(
-            'Cancel', True, 'white'
+            self.CANCEL_TEXT, True, 'white'
         )
         dest.blit(tex, tex.get_rect(center=self.cancel_button_rel.center))
         # SEND
         sbb = self.send_button_rel.inflate(-4, -4)
-        pygame.draw.rect(dest, pygame.Color(50, 50, 50), sbb)
-        tex = load_from_fontspec('Helvetica', 'sans-serif', align=pygame.FONT_CENTER).render(
-            'Send', True, 'white'
+        pygame.draw.rect(dest, pygame.Color(50, 50, 50) if not self.disabled else pygame.Color(68, 68, 68), sbb)
+        tex = load_from_fontspec(
+            'Helvetica', 'sans-serif', align=pygame.FONT_CENTER, strikethrough=self.disabled
+        ).render(
+            self.SEND_TEXT, True, pygame.Color(120, 120, 120) if self.disabled else 'white'
         )
         dest.blit(tex, tex.get_rect(center=self.send_button_rel.center))
         # Register buttons, ig
@@ -344,21 +355,16 @@ class Overlay:
         pygame.draw.rect(dest, pygame.Color(20, 20, 20), inner)
         if side == 1:
             tex = load_from_fontspec('Helvetica', 'sans-serif', align=pygame.FONT_CENTER).render(
-                f'{self.current.party1.name}', True, 'white'
+                f'{self.current.party1.name} gives', True, 'white'
             )
             pygame.draw.rect(dest, pygame.Color(30, 30, 30), tex.get_rect(width=inner.width - 10, centerx=inner.centerx, top=y).inflate(2, 2))
             dest.blit(tex, tex.get_rect(centerx=inner.centerx, top=y))
             y += tex.height + 10  # 5 pad each
         else:
-            lpt = [(15, y + 11), (23, y + 19), (23, y + 3)]
-            lbb = pygame.draw.aalines(dest, pygame.Color(50, 50, 50), True, lpt)
-            pygame.draw.polygon(dest, pygame.Color(150, 150, 150), lpt)
-            rpt = [(dest.width - 16, y + 11), (dest.width - 24, y + 19), (dest.width - 24, y + 3)]
-            pygame.draw.polygon(dest, pygame.Color(150, 150, 150), rpt)
-            rbb = pygame.draw.aalines(dest, pygame.Color(50, 50, 50), True, rpt)
+            self._render_player_lr_arrows(dest, y)
             tex = load_from_fontspec('Helvetica', 'sans-serif',
                                      align=pygame.FONT_CENTER).render(
-                f'{self.current.party2.name}', True, 'white'
+                f'{self.current.party2.name} gives', True, 'white'
             )
             pygame.draw.rect(dest, pygame.Color(30, 30, 30),
                              tex.get_rect(width=inner.width - 60, centerx=inner.centerx,
@@ -366,7 +372,6 @@ class Overlay:
             dest.blit(tex, tex.get_rect(centerx=inner.centerx, top=y))
             y += tex.height + 10  # 5 pad each
 
-            self.buttons += [(self.texas(2, lbb), self.pleft), (self.texas(2, rbb), self.pright)]
         max_w = 10
         ys = []
         heights = []
@@ -394,6 +399,16 @@ class Overlay:
 
             x = self._display_button(dest, side, t, h, x, y, 1, offset=15)
             x = self._display_button(dest, side, t, h, x, y, 10)
+
+    def _render_player_lr_arrows(self, dest: pygame.Surface, y: int):
+        lpt = [(15, y + 11), (23, y + 19), (23, y + 3)]
+        lbb = pygame.draw.aalines(dest, pygame.Color(50, 50, 50), True, lpt)
+        pygame.draw.polygon(dest, pygame.Color(150, 150, 150), lpt)
+        rpt = [(dest.width - 16, y + 11), (dest.width - 24, y + 19),
+               (dest.width - 24, y + 3)]
+        pygame.draw.polygon(dest, pygame.Color(150, 150, 150), rpt)
+        rbb = pygame.draw.aalines(dest, pygame.Color(50, 50, 50), True, rpt)
+        self.buttons += [(self.texas(2, lbb), self.pleft), (self.texas(2, rbb), self.pright)]
 
     def _display_button(self, dest: pygame.Surface, side: int, resource: str,
                         h: int, x: int, y: int, n: int, offset: int = 20,
@@ -446,6 +461,9 @@ class Overlay:
         self.current = None
 
     def action_submit(self):
+        if self.disabled:
+            print('Cannot accept null contract')
+            return
         self.state.creating_contract = None
         self.postprocess_contract()
         player = next(p for p in self.players if p.factory is self.current.party2)
@@ -465,6 +483,8 @@ class Overlay:
 # What is this accursed inheritance borne out of sheer laziness?!
 class FinalContractAgreement(Overlay):
     current_player_object: Player | None = None
+    CANCEL_TEXT = 'Reject contract'
+    SEND_TEXT = 'Accept contract'
 
     @property
     def current_player(self):
@@ -474,6 +494,9 @@ class FinalContractAgreement(Overlay):
                         h: int, x: int, y: int, n: int, offset: int = 20,
                         is_left: bool = False) -> int:
         return x  # Nah, no editing it.
+
+    def _render_player_lr_arrows(self, dest: pygame.Surface, y: int):
+        pass  # Nah, no changing target player for you
 
     def action_cancel(self):
         del self.current_player_object.incoming_contracts[0]

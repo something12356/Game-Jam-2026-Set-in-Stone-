@@ -25,6 +25,9 @@ class Contract:
     def op(self):
         return Contract(self.party2, self.party1, self.terms2, self.terms1, self.timeLimit)
 
+    def is_null(self):
+        return all(n == 0 for n, t in self.terms1 + self.terms2)
+
     ## Currently assuming all terms are just to do with ores, might want to update later to include other items
     ## So the term format will be same as cost format for buildings at the moment
     ## (If we decide to introduce other items)
