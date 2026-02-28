@@ -2,11 +2,13 @@ import pygame
 import sys
 import math
 
+## Each player will have their own factory
 class Factory:
     def __init__(self, buildings: list[Building], ores: list[Ore]):
         self.buildings = buildings
         self.ores = ores
 
+    # Creates building based on what player selects and if they have enough ores to buy it
     def createBuilding(self, buildingType):
         if buildingType == "":
             return
@@ -26,7 +28,7 @@ class Factory:
                     ore.amount -= oreCost[0]
         self.buildings.append(building)
 
-    ## Need to have "Collecting ore from buildings" as a feature rn its automatic? Or maybe not idk
+    ## All the buildings mine their ores, collects ore from building periodically
     def mineLoop(self, collecting=False):
         for building in self.buildings:
             building.mine()
