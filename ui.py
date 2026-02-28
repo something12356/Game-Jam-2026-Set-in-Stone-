@@ -196,8 +196,8 @@ class Player:
     def on_new_clicked(self):
         self.state.creating_contract = self.factory
 
-    def render_contracts_area(self, dest: pygame.Surface):
-        dest.fill(self.color.lerp(pygame.Color(0, 0, 0), 0.9))
+    def render_contracts_area(self, dest: pygame.Surface, brightness):
+        dest.fill(self.color.lerp(pygame.Color(0, 0, 0), brightness))
         self.render_contracts(clamped_subsurf(dest, SC_INFO.contract_list_area))
         self.render_new_contract_button(clamped_subsurf(dest, SC_INFO.contract_new_area))
 
@@ -496,7 +496,11 @@ def main():
             assert bm.screen_num == 1
             for p in players:
                 p.begin()
-                p.render_contracts_area(clamped_subsurf(screen, p.area))
+                if p == players[playerTurn]:
+                    brightness = 0.3
+                else:
+                    brightness = 0.9
+                p.render_contracts_area(clamped_subsurf(screen, p.area), brightness)
             # IMPORTANT: LAST
             if state.creating_contract:
                 s = pygame.Surface(screen.size, pygame.SRCALPHA)
