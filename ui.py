@@ -470,6 +470,10 @@ def render_turnCount(dest: pygame.Surface, turn):
 def main():
     # pygame setup
     pygame.init()
+    #pygame.mixer.init()
+    #pygame.mixer.music.load('CaveV1.wav')
+    #pygame.mixer.music.play(-1)
+    #pygame.mixer.music.set_volume(0.5)
     screen_real = pygame.display.set_mode(SC_INFO.sc_size, pygame.RESIZABLE | pygame.SRCALPHA)
     screen = pygame.Surface(screen_real.size, pygame.SRCALPHA)
     clock = pygame.time.Clock()
