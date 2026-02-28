@@ -4,16 +4,20 @@ import math
 
 ## Each player will have their own factory
 class Factory:
-    def __init__(self, buildings: list[Building], ores: list[Ore]):
+    def __init__(self, buildings: list[Building], ores: list[Ore], capacity: int):
         self.buildings = buildings
         self.ores = ores
+        self.capacity = capacity
 
-    # Creates building based on what player selects and if they have enough ores to buy it
+    # Creates building based on what player selects and if they have enough ores to buy it + if they are not above the current building limit
     def createBuilding(self, buildingType):
         if buildingType == "":
             return
         building = classes[buildingType]()
         cost = building.cost
+        if (len(self.buildings) >= self.capacity):
+            print("You have reached the maximum build limit")
+            return
         for oreCost in cost:
             for ore in self.ores:
                 if ore.type == oreCost[1]:
@@ -63,6 +67,11 @@ class Building:
     def mine(self):
         self.ore.amount += self.productionRate
 
+class Block(Building):
+    def __init__(self):
+        super().__init__("Block", Blocked, 0)
+        self.cost = [(0, "Blocked")]
+
 class CopperMineBasic(Building):
     def __init__(self):
         super().__init__("Basic Copper Mine", Copper, 0.1)
@@ -93,10 +102,14 @@ class Iron(Ore):
     def __init__(self, amount):
         super().__init__(amount, "Iron", (61, 91, 114))
 
-classes = {"Iron":Iron, "Copper":Copper, "CopperMineBasic": CopperMineBasic, "CopperMineAdvanced":CopperMineAdvanced, "IronMine":IronMine}
+class Blocked(Ore):
+    def __init__(self, amount):
+        super().__init__(amount, "Blocked", (0, 0, 0))
+
+classes = {"Iron":Iron, "Copper":Copper, "CopperMineBasic": CopperMineBasic, "CopperMineAdvanced":CopperMineAdvanced, "IronMine":IronMine, "Block":Block}
 
 if __name__ == '__main__':
-    factory1 = Factory([CopperMineBasic()], [Copper(2), Iron(0)])
+    factory1 = Factory([CopperMineBasic()], [Copper(2), Iron(0)], 5)
 
     t=0
     while True:
