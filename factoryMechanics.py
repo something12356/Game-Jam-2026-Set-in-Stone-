@@ -15,7 +15,7 @@ class Factory:
         for oreCost in cost:
             for ore in self.ores:
                 if ore.type == oreCost[1]:
-                    if round(ore.amount, 2) >= oreCost[0]:
+                    if round(ore.amount, 3) >= oreCost[0]:
                         continue
                     else:
                         print("You cannot afford this!")
@@ -85,11 +85,11 @@ class Ore:
 
 class Copper(Ore):
     def __init__(self, amount):
-        super().__init__(amount, "Copper", "orange")
+        super().__init__(amount, "Copper", (120, 58, 45))
 
 class Iron(Ore):
     def __init__(self, amount):
-        super().__init__(amount, "Iron", "grey")
+        super().__init__(amount, "Iron", (61, 91, 114))
 
 classes = {"Iron":Iron, "Copper":Copper, "CopperMineBasic": CopperMineBasic, "CopperMineAdvanced":CopperMineAdvanced, "IronMine":IronMine}
 

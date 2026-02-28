@@ -69,7 +69,7 @@ class Player:
         dest.blit(rendered, (3, 2))  # PAdding: 2 above, 3 left
 
     def render_area(self, dest: pygame.Surface):
-        dest.fill(self.color.lerp(pygame.Color(0, 0, 0), 0.8))
+        dest.fill(self.color.lerp(pygame.Color(0, 0, 0), 0.9))
         self.render_factories(clamped_subsurf(dest, PLAYER_BUILDINGS_AREA))
         self.render_ores(clamped_subsurf(dest, PLAYER_ORES_AREA))
 
