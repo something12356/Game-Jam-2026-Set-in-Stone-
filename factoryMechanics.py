@@ -10,7 +10,7 @@ class Factory:
     def createBuilding(self, buildingType):
         if buildingType == "":
             return
-        building = classes[buildingType]()
+        building = MINE_CLASSES[buildingType]()
         cost = building.cost
         for oreCost in cost:
             for ore in self.ores:
@@ -53,28 +53,33 @@ class Factory:
     
 # Add capability to mine multiple ores with same building
 class Building:
-    def __init__(self, name, oreType, productionRate):
+    cost: list[tuple[int, str]]
+
+    def __init__(self, name: str, oreType, productionRate):
         self.name = name
-        self.ore = oreType(0)
+        self.ore: Ore = oreType(0)
         self.productionRate = productionRate
 
     def mine(self):
         self.ore.amount += self.productionRate
 
 class CopperMineBasic(Building):
+    cost = [(3, "Copper")]
+
     def __init__(self):
         super().__init__("Basic Copper Mine", Copper, 0.1)
-        self.cost = [(3, "Copper")]
 
 class CopperMineAdvanced(Building):
+    cost = [(10, "Copper"), (5, "Iron")]
+
     def __init__(self):
         super().__init__("Advanced Copper Mine", Copper, 0.5)
-        self.cost = [(10, "Copper"), (5, "Iron")]
 
 class IronMine(Building):
+    cost = [(20, "Copper")]
+
     def __init__(self):
         super().__init__("Iron Mine", Iron, 0.1)
-        self.cost = [(20, "Copper")]
 
 ## Have subclasses for different types of ores
 class Ore:
@@ -92,6 +97,8 @@ class Iron(Ore):
         super().__init__(amount, "Iron", (61, 91, 114))
 
 classes = {"Iron":Iron, "Copper":Copper, "CopperMineBasic": CopperMineBasic, "CopperMineAdvanced":CopperMineAdvanced, "IronMine":IronMine}
+MINE_CLASSES = {"CopperMineBasic": CopperMineBasic, "CopperMineAdvanced":CopperMineAdvanced, "IronMine":IronMine}
+RESOURCE_CLASSES = {"Iron":Iron, "Copper":Copper}
 
 if __name__ == '__main__':
     factory1 = Factory([CopperMineBasic()], [Copper(2), Iron(0)])
