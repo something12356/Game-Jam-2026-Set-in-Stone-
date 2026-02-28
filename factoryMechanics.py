@@ -21,26 +21,32 @@ class Contract:
     def checkFulfilled(self):
         print(self.terms1, self.terms2)
         for term in self.terms1:
-            for ore1 in self.party1.ores:
-                if ore1.type == term[1]:
-                    if round(ore1.amount, 3) >= term[0]:
-                        ore1.amount -= term[0]
-                        for ore2 in self.party2.ores:
-                            if ore2.type == term[1]:
-                                ore2.amount += term[0]
-                    else:
-                        print("Party 1 has failed to fulfill the contract!")
+            if term[1] == "Increase slot":
+                self.party2.capacity += term[0]
+            else:
+                for ore1 in self.party1.ores:
+                    if ore1.type == term[1]:
+                        if round(ore1.amount, 3) >= term[0]:
+                            ore1.amount -= term[0]
+                            for ore2 in self.party2.ores:
+                                if ore2.type == term[1]:
+                                    ore2.amount += term[0]
+                        else:
+                            print("Party 1 has failed to fulfill the contract!")
 
         for term in self.terms2:
-            for ore2 in self.party2.ores:
-                if ore2.type == term[1]:
-                    if round(ore2.amount, 3) >= term[0]:
-                        ore2.amount -= term[0]
-                        for ore1 in self.party1.ores:
-                            if ore1.type == term[1]:
-                                ore1.amount += term[0]
-                    else:
-                        print("Party 2 has failed to fulfill the contract!")
+            if term[1] == "Increase slot":
+                self.party1.capacity += term[0]
+            else:            
+                for ore2 in self.party2.ores:
+                    if ore2.type == term[1]:
+                        if round(ore2.amount, 3) >= term[0]:
+                            ore2.amount -= term[0]
+                            for ore1 in self.party1.ores:
+                                if ore1.type == term[1]:
+                                    ore1.amount += term[0]
+                        else:
+                            print("Party 2 has failed to fulfill the contract!")
 
 
 ## Each player will have their own factory
@@ -188,7 +194,7 @@ RESOURCE_CLASSES = {"Iron":Iron, "Copper":Copper, "NullResource": NullResource}
 if __name__ == '__main__':
     factory1 = Factory([CopperMineBasic()], [Copper(2), Iron(0)], 10)
     factory2 = Factory([CopperMineBasic()], [Copper(2), Iron(0)], 10)
-    contracts = [Contract(factory1, factory2, [(3, "Copper"), (1, "Iron")], [(2, "Copper")], 130)]
+    contracts = [Contract(factory1, factory2, [(3, "Copper"), (1, "Iron")], [(2, "Copper"), (1, "Increase slot")], 130)]
 
     t=0
     while True:
