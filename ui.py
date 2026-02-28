@@ -311,9 +311,9 @@ class Overlay:
         else:
             lpt = [(15, y + 11), (23, y + 19), (23, y + 3)]
             lbb = pygame.draw.aalines(dest, pygame.Color(50, 50, 50), True, lpt)
-            pygame.draw.polygon(dest, pygame.Color(50, 50, 50), lpt)
+            pygame.draw.polygon(dest, pygame.Color(150, 150, 150), lpt)
             rpt = [(dest.width - 16, y + 11), (dest.width - 24, y + 19), (dest.width - 24, y + 3)]
-            pygame.draw.polygon(dest, pygame.Color(50, 50, 50), rpt)
+            pygame.draw.polygon(dest, pygame.Color(150, 150, 150), rpt)
             rbb = pygame.draw.aalines(dest, pygame.Color(50, 50, 50), True, rpt)
             tex = load_from_fontspec('Helvetica', 'sans-serif',
                                      align=pygame.FONT_CENTER).render(
