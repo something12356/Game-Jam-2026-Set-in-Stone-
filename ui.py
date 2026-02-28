@@ -33,6 +33,10 @@ class ScreenInfo:
             topleft=self.menu_area.topleft)
         self.right_button_area = self.menu_area.scale_by(0.5, 1).move_to(
             topleft=self.left_button_area.topright)
+        self.contract_list_area = self.base_player_area.scale_by(1, 0.85).move_to(
+            topleft=self.base_player_area.topleft)
+        self.contract_new_area = self.base_player_area.scale_by(1, 0.15).move_to(
+            bottomleft=self.base_player_area.bottomleft)
         return self
 
 
@@ -44,7 +48,7 @@ def clamped_subsurf(s: pygame.Surface, r: IRect | FRect):
 
 
 @functools.cache
-def load_from_fontspec(*fontspec: str, size=20):
+def _load_from_fontspec(*fontspec: str, size=20):
     for f in fontspec:
         if '/' in f or '\\' in f and Path(f).is_file():  # Filename
             p = Path(f)
@@ -55,6 +59,12 @@ def load_from_fontspec(*fontspec: str, size=20):
             # May segfault, so segfault early:
             _ = fnt.name
             return fnt
+
+
+def load_from_fontspec(*fontspec: str, size=20, align: int = pygame.FONT_LEFT):
+    f = _load_from_fontspec(*fontspec, size=size)
+    f.align = align
+    return f
 
 
 def render_building(b: Building):
@@ -72,14 +82,20 @@ def abbreviate(s: str):
 
 
 @dataclasses.dataclass
+class State:
+    creating_contract: bool = False
+
+
+@dataclasses.dataclass
 class Player:
     color: pygame.Color
     factory: Factory
     area_getter: Callable[[], IRect]
     all_contracts: list[Contract]
+    state: State
 
     def begin(self):
-        self.buttons = []
+        self.buttons: list[tuple[IRect, Callable[[], None]]] = []
 
     @property
     def area(self):
@@ -113,7 +129,7 @@ class Player:
     def render_buy_buttons(self, dest: pygame.Surface):
         font = load_from_fontspec('Helvetica', 'sans-serif')
         y = 0
-        buttons: list[tuple[IRect, str]] = []
+        buttons: list[tuple[IRect, Callable[[], None]]] = []
         for m_id, cls in backend.MINE_CLASSES.items():
             if not cls.can_buy_directly:
                 continue
@@ -127,14 +143,14 @@ class Player:
             dest.blit(tex, (5 + 5, y + 5))
             y += tex.height + 15
             btn_rect_outer = btn_rect.move(Vec2(SC_INFO.player_buy_area.topleft) - Vec2(0, 0))
-            buttons.append((btn_rect_outer, m_id))
+            buttons.append((btn_rect_outer, lambda m_id=m_id: self.factory.createBuilding(m_id)))
         return buttons
 
     def render_area(self, dest: pygame.Surface):
         dest.fill(self.color.lerp(pygame.Color(0, 0, 0), 0.9))
         self.render_factories(clamped_subsurf(dest, SC_INFO.player_buildings_area))
         self.render_ores(clamped_subsurf(dest, SC_INFO.player_ores_area))
-        self.buttons = self.render_buy_buttons(clamped_subsurf(dest, SC_INFO.player_buy_area))
+        self.buttons += self.render_buy_buttons(clamped_subsurf(dest, SC_INFO.player_buy_area))
 
     def _render_single_contract(self, c: Contract) -> pygame.Surface:
         tex = load_from_fontspec('Helvetica', 'sans-serif').render(
@@ -146,8 +162,7 @@ class Player:
         dest.blit(tex, tex.get_rect(center=dest.get_rect().center))
         return dest
 
-    def render_contracts_area(self, dest: pygame.Surface):
-        dest.fill(self.color.lerp(pygame.Color(0, 0, 0), 0.9))
+    def render_contracts(self, dest: pygame.Surface):
         x = y = 5
         h_max = 1
         for c in self.all_contracts:
@@ -166,14 +181,81 @@ class Player:
             x += w + 5
             h_max = max(h_max, h)
 
+    def render_new_contract_button(self, dest: pygame.Surface):
+        crect = dest.get_rect().inflate(-10, -10)
+        pygame.draw.rect(dest, pygame.Color(50, 50, 50), crect)
+        tex = load_from_fontspec('Helvetica', 'sans-serif').render(
+            'Propose contract', True, 'white'
+        )
+        dest.blit(tex, tex.get_rect(center=dest.get_rect().center))
+        self.buttons += [(crect.move(Vec2(SC_INFO.contract_new_area.topleft) - Vec2()), self.on_new_clicked)]
+
+    def on_new_clicked(self):
+        self.state.creating_contract = True
+
+    def render_contracts_area(self, dest: pygame.Surface):
+        dest.fill(self.color.lerp(pygame.Color(0, 0, 0), 0.9))
+        self.render_contracts(clamped_subsurf(dest, SC_INFO.contract_list_area))
+        self.render_new_contract_button(clamped_subsurf(dest, SC_INFO.contract_new_area))
+
     def onclick(self, pos: Vec2):
         print('Recv Player.onclick')
         c_idx = IRect(pos, (1, 1)).collidelist([r for r, _name in self.buttons])
         if c_idx == -1:
             print(pos, [r for r, _name in self.buttons])
             return
-        _, s = self.buttons[c_idx]
-        self.factory.createBuilding(s)
+        _, action = self.buttons[c_idx]
+        action()
+
+
+@dataclasses.dataclass
+class Overlay:
+    area_getter: Callable[[], IRect]
+
+    def begin(self):
+        self.buttons: list[tuple[IRect, Callable[[], None]]] = []
+
+    @property
+    def area(self):
+        return self.area_getter()
+
+    @property
+    def main_section_rel(self):
+        return self.area.scale_by(1, 0.85).move_to(topleft=(0, 0))
+
+    @property
+    def bot_section_rel(self):
+        return self.area.scale_by(1, 0.15).move_to(topleft=self.main_section_rel.bottomleft)
+
+    @property
+    def cancel_button_rel(self):
+        return self.bot_section_rel.scale_by(0.5, 1).move_to(topleft=self.bot_section_rel.topleft)
+
+    @property
+    def send_button_rel(self):
+        return self.bot_section_rel.scale_by(0.5, 1).move_to(topright=self.bot_section_rel.topright)
+
+    @property
+    def left_main_rel(self):
+        return self.main_section_rel.scale_by(0.5, 1).move_to(topleft=self.main_section_rel.topleft)
+
+    @property
+    def right_main_rel(self):
+        return self.main_section_rel.scale_by(0.5, 1).move_to(topright=self.main_section_rel.topright)
+
+    def display(self, dest: pygame.Surface):
+        # CANCEL
+        pygame.draw.rect(dest, pygame.Color(50, 50, 50), self.cancel_button_rel.inflate(-4, -4))
+        tex = load_from_fontspec('Helvetica', 'sans-serif', align=pygame.FONT_CENTER).render(
+            'Cancel', True, 'white'
+        )
+        dest.blit(tex, tex.get_rect(center=self.cancel_button_rel.center))
+        # SEND
+        pygame.draw.rect(dest, pygame.Color(50, 50, 50), self.send_button_rel.inflate(-4, -4))
+        tex = load_from_fontspec('Helvetica', 'sans-serif', align=pygame.FONT_CENTER).render(
+            'Send', True, 'white'
+        )
+        dest.blit(tex, tex.get_rect(center=self.send_button_rel.center))
 
 
 @dataclasses.dataclass
@@ -200,13 +282,15 @@ class BottomMenu:
         )
         cbt_r = cbt.get_rect(right=dest.get_rect().right - 2,
                              centery=dest.get_rect().centery)
-        pygame.draw.rect(dest, pygame.Color(50, 50, 50), abt_r.inflate(2, 2))
-        pygame.draw.rect(dest, pygame.Color(50, 50, 50), cbt_r.inflate(2, 2))
+        abt_rr = abt_r.inflate(2, 2).move_to(height=dest.height - 5, centery=dest.get_rect().centery)
+        pygame.draw.rect(dest, pygame.Color(50, 50, 50), abt_rr)
+        cbt_rr = cbt_r.inflate(2, 2).move_to(height=dest.height - 5, centery=dest.get_rect().centery)
+        pygame.draw.rect(dest, pygame.Color(50, 50, 50), cbt_rr)
 
         dest.blit(abt, abt_r)
         dest.blit(cbt, cbt_r)
 
-        self.buttons = [(abt_r, self.set_left), (cbt_r, self.set_right)]
+        self.buttons = [(abt_rr, self.set_left), (cbt_rr, self.set_right)]
 
     def set_left(self):
         self.screen_num = 0
@@ -247,23 +331,22 @@ def main():
     clock = pygame.time.Clock()
     running = True
 
+    state = State()
     contracts = []
     p1 = Player(pygame.Color("Red"), demo_factory('Red'),
-                lambda: SC_INFO.base_player_area, contracts)
+                lambda: SC_INFO.base_player_area, contracts, state)
     p2 = Player(pygame.Color("Yellow"), demo_factory('Yellow'),
-                lambda: SC_INFO.base_player_area.move_to(left=SC_INFO.main_area.w / 2), contracts)
+                lambda: SC_INFO.base_player_area.move_to(left=SC_INFO.main_area.w / 2), contracts, state)
     p3 = Player(pygame.Color("Green"), demo_factory('Green'),
-                lambda: SC_INFO.base_player_area.move_to(top=SC_INFO.main_area.h / 2), contracts)
+                lambda: SC_INFO.base_player_area.move_to(top=SC_INFO.main_area.h / 2), contracts, state)
     p4 = Player(pygame.Color("Blue"), demo_factory('Blue'),
-                lambda: SC_INFO.base_player_area.move_to(topleft=Vec2(SC_INFO.main_area.size) / 2), contracts)
+                lambda: SC_INFO.base_player_area.move_to(topleft=Vec2(SC_INFO.main_area.size) / 2), contracts, state)
     players = [p1, p2, p3, p4]
     contracts.append(Contract(p1.factory, p2.factory, [(3, "Copper"), (1, "Iron")], [(2, "Copper"), (1, "Increase slot")], 130))
     bm = BottomMenu(lambda: SC_INFO.menu_area)
 
     i = 0
     while running:
-        # poll for events
-        # pygame.QUIT event means the user clicked X to close your window
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -283,6 +366,10 @@ def main():
         # fill the screen with a color to wipe away anything from last frame
         screen.fill("black")
 
+        if state.creating_contract:
+            print('CC')
+            state.creating_contract = False
+
         # RENDER YOUR GAME HERE
         if (i + 1) % 10 == 0:
             for p in players:
@@ -296,9 +383,7 @@ def main():
                 p.begin()
                 p.render_contracts_area(clamped_subsurf(screen, p.area))
 
-        # flip() the display to put your work on screen
         pygame.display.flip()
-
         clock.tick(60)  # limits FPS to 60
 
     pygame.quit()
