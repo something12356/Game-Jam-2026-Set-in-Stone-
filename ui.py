@@ -45,10 +45,14 @@ def render_building(b: Building):
     dest = pygame.Surface((40, 40))
     pygame.draw.rect(dest, b.ore.colour, IRect(0, 0, 40, 40))
     font = load_from_fontspec('Helvetica', 'sans-serif')
-    tex = font.render(''.join(s[0] for s in b.name.split()), True, BUILDING_TEXT_COLOR)
+    tex = font.render(abbreviate(b.name), True, BUILDING_TEXT_COLOR)
     tex_area = tex.get_rect(center=dest.get_rect().center)
     dest.blit(tex, tex_area)
     return dest
+
+
+def abbreviate(s: str):
+    return ''.join(w[0] for w in s.split())
 
 
 @dataclasses.dataclass
@@ -86,15 +90,18 @@ class Player:
         font = load_from_fontspec('Helvetica', 'sans-serif')
         y = 0
         buttons: list[tuple[IRect, str]] = []
-        for name, cls in backend.MINE_CLASSES.items():
+        for m_id, cls in backend.MINE_CLASSES.items():
             costs = sorted(cls.cost, key=lambda cost: cost[1])
-            cost_str = ', '.join(f'{n} {ore_s}' for n, ore_s in costs)
+            cost_str = (f'{abbreviate(cls.name)}: {cls.productionRate} '
+                        f'{cls.produces.name}/sec (COST: '
+                        + ', '.join(f'{n} {ore_s}' for n, ore_s in costs)
+                        + ')')
             tex = font.render(cost_str, True, 'white')
             btn_rect = pygame.draw.rect(dest, (50, 50, 50), IRect(5, y, tex.width + 10, tex.height + 10))
             dest.blit(tex, (5 + 5, y + 5))
             y += tex.height + 15
             btn_rect_outer = btn_rect.move(Vec2(PLAYER_BUY_AREA.topleft) - Vec2(0, 0))
-            buttons.append((btn_rect_outer, name))
+            buttons.append((btn_rect_outer, m_id))
         return buttons
 
     def render_area(self, dest: pygame.Surface):

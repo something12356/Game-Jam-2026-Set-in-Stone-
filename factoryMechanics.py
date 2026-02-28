@@ -93,10 +93,35 @@ class Factory:
         print('')
         for i in self.ores:
             print(f'Total {i.type} | {i.amount:.2f}')
-    
+
+
+## Have subclasses for different types of ores
+class Ore:
+    name: str
+
+    def __init__(self, amount, type, colour):
+        self.amount = amount
+        self.type = type
+        self.colour = colour
+
+class Copper(Ore):
+    name = 'Copper'
+
+    def __init__(self, amount):
+        super().__init__(amount, "Copper", (120, 58, 45))
+
+class Iron(Ore):
+    name = 'Iron'
+
+    def __init__(self, amount):
+        super().__init__(amount, "Iron", (61, 91, 114))
+
 # Add capability to mine multiple ores with same building
 class Building:
     cost: list[tuple[int, str]]
+    name: str
+    produces: type[Ore]
+    productionRate: float
 
     def __init__(self, name: str, oreType, productionRate):
         self.name = name
@@ -108,36 +133,32 @@ class Building:
 
 class CopperMineBasic(Building):
     cost = [(3, "Copper")]
+    name = 'Basic Copper Mine'
+    produces = Copper
+    productionRate = 0.1
 
     def __init__(self):
         super().__init__("Basic Copper Mine", Copper, 0.1)
 
+
 class CopperMineAdvanced(Building):
     cost = [(10, "Copper"), (5, "Iron")]
+    name = 'Advanced Copper Mine'
+    produces = Copper
+    productionRate = 0.5
 
     def __init__(self):
         super().__init__("Advanced Copper Mine", Copper, 0.5)
 
 class IronMine(Building):
     cost = [(20, "Copper")]
+    name = 'Iron Mine'
+    produces = Iron
+    productionRate = 0.1
 
     def __init__(self):
         super().__init__("Iron Mine", Iron, 0.1)
 
-## Have subclasses for different types of ores
-class Ore:
-    def __init__(self, amount, type, colour):
-        self.amount = amount
-        self.type = type
-        self.colour = colour
-
-class Copper(Ore):
-    def __init__(self, amount):
-        super().__init__(amount, "Copper", (120, 58, 45))
-
-class Iron(Ore):
-    def __init__(self, amount):
-        super().__init__(amount, "Iron", (61, 91, 114))
 
 classes = {"Iron":Iron, "Copper":Copper, "CopperMineBasic": CopperMineBasic, "CopperMineAdvanced":CopperMineAdvanced, "IronMine":IronMine}
 MINE_CLASSES = {"CopperMineBasic": CopperMineBasic, "CopperMineAdvanced":CopperMineAdvanced, "IronMine":IronMine}
