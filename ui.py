@@ -145,7 +145,7 @@ class Player:
             btn_rect = pygame.draw.rect(dest, (50, 50, 50), IRect(5, y, tex.width + 10, tex.height + 10))
             dest.blit(tex, (5 + 5, y + 5))
             y += tex.height + 15
-            btn_rect_outer = btn_rect.move(Vec2(SC_INFO.player_buy_area.topleft) - Vec2(0, 0))
+            btn_rect_outer = btn_rect.move(Vec2(SC_INFO.player_buy_area.topleft) - SC_INFO.base_player_area.topleft)
             buttons.append((btn_rect_outer, lambda m_id=m_id: self.factory.createBuilding(m_id)))
         return buttons
 
