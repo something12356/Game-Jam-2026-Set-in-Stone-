@@ -3,7 +3,7 @@ import sys
 import math
 
 class Factory:
-    def __init__(self, buildings, ores):
+    def __init__(self, buildings: list[Building], ores: list[Ore]):
         self.buildings = buildings
         self.ores = ores
 
@@ -32,7 +32,6 @@ class Factory:
             building.mine()
 
         oreDict = {building.ore.type : 0 for building in self.buildings}
-        print(oreDict)
         for building in self.buildings:
             oreDict[building.ore.type] += building.ore.amount
 

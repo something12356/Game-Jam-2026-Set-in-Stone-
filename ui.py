@@ -6,7 +6,7 @@ import pygame
 from pygame import Vector2 as Vec2, Color
 from pygame import FRect, Rect as IRect
 
-from factoryMechanics import Factory
+from factoryMechanics import Factory, CopperMineBasic, Copper, Iron
 
 ORE_TEXT_COLOR = 'white'
 
@@ -14,15 +14,8 @@ MAIN_AREA = IRect((0, 0), (1600, 900))
 MENU_AREA = IRect((0, 900), (1600, 100))
 SC_SIZE = Vec2(MAIN_AREA.union(MENU_AREA).size)
 BASE_PLAYER_AREA = MAIN_AREA.scale_by(0.5, 0.5).move_to(topleft=(0, 0))
-PLAYER_ORES_AREA = BASE_PLAYER_AREA.scale_by(0.1, 1).move_to(topleft=(0, 0))  # 10%?
-PLAYER_BUILDINGS_AREA = BASE_PLAYER_AREA.scale_by(0.9, 1).move_to(top=0, left=PLAYER_ORES_AREA.right)
-
-# TODO: this is temp.
-ORE_TO_COLOR = {
-    "ore1": Color(180, 180, 255),
-    "ore2": Color(255, 210, 180),
-    "ore3": Color(100, 255, 100),
-}
+PLAYER_ORES_AREA = BASE_PLAYER_AREA.scale_by(0.15, 1).move_to(topleft=(0, 0))  # 10%?
+PLAYER_BUILDINGS_AREA = BASE_PLAYER_AREA.scale_by(0.85, 1).move_to(top=0, left=PLAYER_ORES_AREA.right)
 
 
 def clamped_subsurf(s: pygame.Surface, r: IRect | FRect):
@@ -61,22 +54,22 @@ class Player:
                 h_max = 1
             # TODO: textures and such: modify this below
             #  and w = ..., h = ... above
-            pygame.draw.rect(dest, ORE_TO_COLOR[b.ore.type], IRect(x, y, w, h))
+            pygame.draw.rect(dest, b.ore.colour, IRect(x, y, w, h))
             x += w + 5
             h_max = max(h_max, h)
 
     def render_ores(self, dest: pygame.Surface):
         # Alphabetical consistent order
-        ores = sorted(self.factory.get_ores().items(), key=lambda i: i[0])
+        ores = sorted(self.factory.ores, key=lambda i: i.type)
         font = load_from_fontspec('Helvetica', 'sans-serif')
-        text = '\n'.join(f'{name}: {amount}' for name, amount in ores)
+        text = '\n'.join(f'{o.type}: {round(o.amount, 3)}' for o in ores)
 
         rendered = font.render(text, antialias=True, color=ORE_TEXT_COLOR,
                                wraplength=dest.width - 5)  # 2, 3
         dest.blit(rendered, (3, 2))  # PAdding: 2 above, 3 left
 
     def render_area(self, dest: pygame.Surface):
-        dest.fill(self.color.lerp(pygame.Color(0, 0, 0), 0.5))
+        dest.fill(self.color.lerp(pygame.Color(0, 0, 0), 0.8))
         self.render_factories(clamped_subsurf(dest, PLAYER_BUILDINGS_AREA))
         self.render_ores(clamped_subsurf(dest, PLAYER_ORES_AREA))
 
@@ -93,12 +86,7 @@ def render_players_screen(screen: pygame.Surface, players: list[Player]):
 
 
 def demo_factory():
-    factory1 = Factory([])
-
-    factory1.createBuilding("building1", "ore1", 1)
-    factory1.createBuilding("building2", "ore2", 2)
-    factory1.createBuilding("building3", "ore1", 3)
-
+    factory1 = Factory([CopperMineBasic()], [Copper(2), Iron(0)])
     return factory1
 
 
@@ -130,7 +118,7 @@ def main():
         # RENDER YOUR GAME HERE
         if (i + 1) % 60 == 0:
             for p in players:
-                p.factory.mineLoop()
+                p.factory.mineLoop(collecting=True)
         render_players_screen(screen, players)
 
         # flip() the display to put your work on screen
