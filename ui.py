@@ -416,7 +416,7 @@ def render_players_screen(screen: pygame.Surface, players: list[Player]):
 
 
 def demo_factory(name: str):
-    factory1 = Factory(name, [CopperMineBasic()], [Copper(2), Iron(0)], 10)
+    factory1 = Factory(name, [CopperMineBasic()], [Copper(12), Iron(0)], 10)
     return factory1
 
 def render_turnCount(dest: pygame.Surface, turn):
@@ -452,6 +452,7 @@ def main():
     i = 0
     t = 0
     while running:
+        playerTurn = t%4
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -463,9 +464,9 @@ def main():
                 if state.creating_contract:
                     ol.onclick(pos - ol.area.topleft)
                 else:
-                    for pl in players:
-                        if pl.area.collidepoint(pos):
-                            pl.onclick(pos - pl.area.topleft)
+                    pl = players[playerTurn]
+                    if pl.area.collidepoint(pos):
+                        pl.onclick(pos - pl.area.topleft)
                     if bm.area.collidepoint(pos):
                         bm.onclick(pos - bm.area.topleft)
 
@@ -480,7 +481,7 @@ def main():
 
         render_turnCount(clamped_subsurf(screen, SC_INFO.turnCount_area), t)
         # RENDER YOUR GAME HERE
-        if (i + 1) % 10 == 0:
+        if (i + 1) % 300 == 0:
             for p in players:
                 p.factory.mineLoop(collecting=True)
             t += 1
