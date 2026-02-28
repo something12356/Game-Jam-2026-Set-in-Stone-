@@ -29,6 +29,10 @@ class ScreenInfo:
             topleft=self.player_right_area.topleft)
         self.player_buy_area = self.player_right_area.scale_by(1, 0.4).move_to(
             topleft=self.player_buildings_area.bottomleft)
+        self.left_button_area = self.menu_area.scale_by(0.5, 1).move_to(
+            topleft=self.menu_area.topleft)
+        self.right_button_area = self.menu_area.scale_by(0.5, 1).move_to(
+            topleft=self.left_button_area.topright)
         return self
 
 
@@ -163,13 +167,61 @@ class Player:
             h_max = max(h_max, h)
 
     def onclick(self, pos: Vec2):
-        print('Recv onclick')
+        print('Recv Player.onclick')
         c_idx = IRect(pos, (1, 1)).collidelist([r for r, _name in self.buttons])
         if c_idx == -1:
             print(pos, [r for r, _name in self.buttons])
             return
         _, s = self.buttons[c_idx]
         self.factory.createBuilding(s)
+
+
+@dataclasses.dataclass
+class BottomMenu:
+    area_getter: Callable[[], IRect]
+    screen_num: int = 0
+
+    def begin(self):
+        self.buttons: list[tuple[IRect, Callable[[], None]]] = []
+
+    @property
+    def area(self):
+        return self.area_getter()
+
+    def display(self, dest: pygame.Surface):
+        font = load_from_fontspec('Helvetica', 'sans-serif')
+        font.align = pygame.FONT_CENTER
+        abt = font.render(
+            'Factories', True, 'white', wraplength=dest.width // 2 - 7
+        )
+        abt_r = abt.get_rect(left=2, centery=dest.get_rect().centery)
+        cbt = font.render(
+            'Contracts', True, 'white', wraplength=dest.width // 2 - 7
+        )
+        cbt_r = cbt.get_rect(right=dest.get_rect().right - 2,
+                             centery=dest.get_rect().centery)
+        pygame.draw.rect(dest, pygame.Color(50, 50, 50), abt_r.inflate(2, 2))
+        pygame.draw.rect(dest, pygame.Color(50, 50, 50), cbt_r.inflate(2, 2))
+
+        dest.blit(abt, abt_r)
+        dest.blit(cbt, cbt_r)
+
+        self.buttons = [(abt_r, self.set_left), (cbt_r, self.set_right)]
+
+    def set_left(self):
+        self.screen_num = 0
+
+    def set_right(self):
+        self.screen_num = 1
+
+    def onclick(self, pos: Vec2):
+        print('Recv Menu.onclick')
+        c_idx = IRect(pos, (1, 1)).collidelist([r for r, _name in self.buttons])
+        if c_idx == -1:
+            print(pos, [r for r, _name in self.buttons])
+            return
+        _, action = self.buttons[c_idx]
+        action()
 
 
 def render_player_area(dest: pygame.Surface, data):  # TODO: get the data!
@@ -180,7 +232,7 @@ def render_players_screen(screen: pygame.Surface, players: list[Player]):
     for p in players:
         p.begin()
         # p.render_area(clamped_subsurf(screen, p.area))
-        p.render_contracts_area(clamped_subsurf(screen, p.area))
+        p.render_area(clamped_subsurf(screen, p.area))
 
 
 def demo_factory(name: str):
@@ -206,6 +258,7 @@ def main():
                 lambda: SC_INFO.base_player_area.move_to(topleft=Vec2(SC_INFO.main_area.size) / 2), contracts)
     players = [p1, p2, p3, p4]
     contracts.append(Contract(p1.factory, p2.factory, [(3, "Copper"), (1, "Iron")], [(2, "Copper"), (1, "Increase slot")], 130))
+    bm = BottomMenu(lambda: SC_INFO.menu_area)
 
     i = 0
     while running:
@@ -222,6 +275,9 @@ def main():
                 for pl in players:
                     if pl.area.collidepoint(pos):
                         pl.onclick(pos - pl.area.topleft)
+                if bm.area.collidepoint(pos):
+                    bm.onclick(pos - bm.area.topleft)
+
         i += 1
 
         # fill the screen with a color to wipe away anything from last frame
@@ -231,7 +287,14 @@ def main():
         if (i + 1) % 10 == 0:
             for p in players:
                 p.factory.mineLoop(collecting=True)
-        render_players_screen(screen, players)
+        bm.display(clamped_subsurf(screen, bm.area))
+        if bm.screen_num == 0:
+            render_players_screen(screen, players)
+        else:
+            assert bm.screen_num == 1
+            for p in players:
+                p.begin()
+                p.render_contracts_area(clamped_subsurf(screen, p.area))
 
         # flip() the display to put your work on screen
         pygame.display.flip()
