@@ -111,6 +111,7 @@ class Player:
     area_getter: Callable[[], IRect]
     all_contracts: list[Contract]
     state: State
+    incoming_contracts: list[Contract] = dataclasses.field(default_factory=list)
 
     def begin(self):
         self.buttons: list[tuple[IRect, Callable[[], None]]] = []
@@ -186,7 +187,7 @@ class Player:
         for c in self.all_contracts:
             if c.party2 is self.factory:
                 # Reverse it ('without loss of generality, self is c.party1')
-                c = Contract(c.party2, c.party1, c.terms2, c.terms2, c.timeLimit)
+                c = c.op()
             if c.party1 is not self.factory:
                 continue
             tex = self._render_single_contract(c)  # TODO
@@ -231,7 +232,7 @@ class Overlay:
     area_getter: Callable[[], IRect]
     state: State
     players: list[Player]
-    current: Contract = None
+    current: Contract | None = None
     t: int = 0
 
     def begin(self):
@@ -279,15 +280,19 @@ class Overlay:
 
     @property
     def other_players(self):
-        return [p.factory for p in self.players if p.factory is not self.state.creating_contract]
+        return [p.factory for p in self.players if p.factory is not self.current_player]
+
+    @property
+    def current_player(self):
+        return self.state.creating_contract
 
     def display(self, dest: pygame.Surface):
         self.begin()
-        if self.state.creating_contract is None:
+        if self.current_player is None:
             return
         if self.current is None:
             self.current = Contract(
-                self.state.creating_contract, self.other_players[0],
+                self.current_player, self.other_players[0],
                 [(0, t) for t in backend.TRADE_POSSIBILITIES],
                 [(0, t) for t in backend.TRADE_POSSIBILITIES], self.t + 30)  # TODO DEFAULT
         # CANCEL
@@ -306,6 +311,7 @@ class Overlay:
         dest.blit(tex, tex.get_rect(center=self.send_button_rel.center))
         # Register buttons, ig
         self.buttons += [(cbb, self.action_cancel)]
+        self.buttons += [(sbb, self.action_submit)]
 
         self.display_deadline(dest)
 
@@ -431,8 +437,19 @@ class Overlay:
             if t == res:
                 ls[i] = (max(n + amount, 0), t)
 
+    def postprocess_contract(self):
+        self.current.terms1 = [(n, t) for n, t in self.current.terms1 if n > 0]
+        self.current.terms2 = [(n, t) for n, t in self.current.terms2 if n > 0]
+
     def action_cancel(self):
         self.state.creating_contract = None
+        self.current = None
+
+    def action_submit(self):
+        self.state.creating_contract = None
+        self.postprocess_contract()
+        player = next(p for p in self.players if p.factory is self.current.party2)
+        player.incoming_contracts.append(self.current)
         self.current = None
 
     def onclick(self, pos: Vec2):
@@ -443,6 +460,32 @@ class Overlay:
             return
         _, action = self.buttons[c_idx]
         action()
+
+
+# What is this accursed inheritance borne out of sheer laziness?!
+class FinalContractAgreement(Overlay):
+    current_player_object: Player | None = None
+
+    @property
+    def current_player(self):
+        return self.current_player_object.factory if self.current_player_object else None
+
+    def _display_button(self, dest: pygame.Surface, side: int, resource: str,
+                        h: int, x: int, y: int, n: int, offset: int = 20,
+                        is_left: bool = False) -> int:
+        return x  # Nah, no editing it.
+
+    def action_cancel(self):
+        del self.current_player_object.incoming_contracts[0]
+        self.current = None
+        self.current_player_object = None
+
+    def action_submit(self):
+        self.current_player_object.all_contracts.append(self.current)
+        del self.current_player_object.incoming_contracts[0]
+        self.current = None
+        self.current_player_object = None
+        print('Submitted')
 
 
 @dataclasses.dataclass
@@ -546,6 +589,7 @@ def main():
     contracts.append(Contract(p1.factory, p2.factory, [(3, "Copper"), (1, "Iron")], [(2, "Copper"), (1, "Increase slot")], 130))
     bm = BottomMenu(lambda: SC_INFO.menu_area)
     ol = Overlay(lambda: SC_INFO.overlay_area, state, players)
+    olf = FinalContractAgreement(lambda: SC_INFO.overlay_area, state, players)
 
     i = 0
     t = 0
@@ -560,7 +604,10 @@ def main():
                 screen = pygame.Surface(screen_real.size, pygame.SRCALPHA)
             if event.type == pygame.MOUSEBUTTONUP:
                 pos = Vec2(event.pos)
-                if state.creating_contract is not None:
+                if players[playerTurn].incoming_contracts:
+                    print('Click -> OverlayFinal')
+                    olf.onclick(pos - olf.area.topleft)
+                elif state.creating_contract is not None:
                     print('Click -> Overlay')
                     ol.onclick(pos - ol.area.topleft)
                 else:
@@ -582,11 +629,12 @@ def main():
 
         render_turnCount(clamped_subsurf(screen, SC_INFO.turnCount_area), t)
         # RENDER YOUR GAME HERE
-        if (i + 1) % 300 == 0:
+        if (i + 1) % 400 == 0 and players[playerTurn].incoming_contracts == []:
             for p in players:
                 p.factory.mineLoop(collecting=True)
             t += 1
             ol.t = t
+            olf.t = t
         bm.display(clamped_subsurf(screen, bm.area))
         if bm.screen_num == 0:
             render_players_screen(screen, players, playerTurn)
@@ -606,6 +654,16 @@ def main():
                 screen.blit(s)
                 # pygame.draw.rect(screen, pygame.Color(0, 0, 0, 10), screen.get_rect())
             ol.display(clamped_subsurf(screen, ol.area))
+        p = players[playerTurn]
+        # print(f'{p.incoming_contracts=}')
+        if p.incoming_contracts:
+            s = pygame.Surface(screen.size, pygame.SRCALPHA)
+            pygame.draw.rect(s, pygame.Color(0, 0, 0, 129), s.get_rect())
+            screen.blit(s)
+            c = p.incoming_contracts[0]
+            olf.current = c.op()
+            olf.current_player_object = p
+            olf.display(clamped_subsurf(screen, olf.area))
 
         screen_real.blit(screen)
         pygame.display.flip()

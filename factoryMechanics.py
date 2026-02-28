@@ -22,6 +22,9 @@ class Contract:
                 ', '.join(f'{num} {resource}' for num, resource in self.terms2)
                 + f'\nBy turn {self.timeLimit}')
 
+    def op(self):
+        return Contract(self.party2, self.party1, self.terms2, self.terms1, self.timeLimit)
+
     ## Currently assuming all terms are just to do with ores, might want to update later to include other items
     ## So the term format will be same as cost format for buildings at the moment
     ## (If we decide to introduce other items)
