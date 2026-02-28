@@ -18,8 +18,9 @@ class ScreenInfo:
     def from_sc_size(self, sc_size: Vec2):
         self.sc_size = sc_size
         self.sc_rect = IRect((0, 0), sc_size)
-        self.main_area = self.sc_rect.scale_by(1, 0.9).move_to(topleft=(0, 0))
-        self.menu_area = self.sc_rect.scale_by(1, 0.1).move_to(topleft=self.main_area.bottomleft)
+        self.main_area = self.sc_rect.scale_by(1, 0.85).move_to(topleft=(0,0))
+        self.turnCount_area = self.sc_rect.scale_by(1, 0.05).move_to(topleft=self.main_area.bottomleft)        
+        self.menu_area = self.sc_rect.scale_by(1, 0.1).move_to(topleft=self.turnCount_area.bottomleft)
         self.base_player_area = self.main_area.scale_by(0.5, 0.5).move_to(topleft=(0, 0))
         self.player_ores_area = self.base_player_area.scale_by(0.15, 1).move_to(
             topleft=self.base_player_area.topleft)
@@ -109,6 +110,10 @@ class Player:
         rendered = font.render(text, antialias=True, color=ORE_TEXT_COLOR,
                                wraplength=dest.width - 5)  # 2, 3
         dest.blit(rendered, (3, 2))  # Padding: 2 above, 3 left
+
+        rendered = font.render(text, antialias=True, color='white', wraplength=dest.width - 5)
+        dest.blit(rendered, (3,2))
+
 
     def render_buy_buttons(self, dest: pygame.Surface):
         font = load_from_fontspec('Helvetica', 'sans-serif')
@@ -239,6 +244,12 @@ def demo_factory(name: str):
     factory1 = Factory(name, [CopperMineBasic()], [Copper(2), Iron(0)], 10)
     return factory1
 
+def render_turnCount(dest: pygame.Surface, turn):
+    font = load_from_fontspec('Helvetica', 'sans-serif')
+    text = f'Turn {turn}'
+    rendered = font.render(text, antialias=True, color='white', wraplength=dest.width - 5)
+    dest.blit(rendered, (3,2))
+
 
 def main():
     # pygame setup
@@ -261,6 +272,7 @@ def main():
     bm = BottomMenu(lambda: SC_INFO.menu_area)
 
     i = 0
+    t = 0
     while running:
         # poll for events
         # pygame.QUIT event means the user clicked X to close your window
@@ -283,10 +295,12 @@ def main():
         # fill the screen with a color to wipe away anything from last frame
         screen.fill("black")
 
+        render_turnCount(clamped_subsurf(screen, SC_INFO.turnCount_area), t)
         # RENDER YOUR GAME HERE
         if (i + 1) % 10 == 0:
             for p in players:
                 p.factory.mineLoop(collecting=True)
+            t += 1
         bm.display(clamped_subsurf(screen, bm.area))
         if bm.screen_num == 0:
             render_players_screen(screen, players)
