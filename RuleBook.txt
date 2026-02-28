@@ -3,7 +3,6 @@ This protocol governs the 120-turn extraction cycle (30 turns per player). Your 
 ________________________________________
 I. THE LOADOUTS (CHOOSE ONE)
 Each player randomly obtains a starting profile. 
-Slots 11 and higher are "Safe Zones"—they are immune to debt-collection.
 Set	Designation	Starting Inventory	Total Slots	Starting Building
 A	Industrialist
 19%	30 Iron 5 Copper	10	1 Iron Mine
@@ -40,16 +39,15 @@ III. THE RESOURCE ECONOMY
 Buildings contribute 0 points to the final score. Only held ore and gems count.
 Ore	Value (Score)	Building Cost	Production / Tick
 Copper	5	Basic: 15C 
-Advanced: 50C + 10I	Basic: 0.5 
+Advanced: 10C + 20I	Basic: 0.5 
 Advanced: 2.5
-Iron	12	40C	0.5
+Iron	12	20C	0.5
 Titanium	300	100C + 50I	0.5
-Tantalum	2000	50C + 50I + 10Ti	0.5
+Tantalum	1000	75C + 50I + 15Ti	0.5
 ________________________________________
 IV. DEBT & SLOT SOVEREIGNTY
 Players may sign contracts to receive resources and fulfil them now or later. Failure to pay in the allotted time results in a Blocked Slot. Both sides have to agree for a contract to be set in stone.
 •	The Debt Collector: If you have no empty slots (1–10), roll a D10. That building is destroyed and the slot is blocked.
-•	The Safe Zone: Any slot numbered 11 or higher cannot be blocked or destroyed.
 •	Universal Trading: Any player may trade empty slots to any other player. You cannot trade away your final slot; you must retain a minimum of 1. Trades can only occur through contracts and all contracts take up a slot and cannot be revoked, even on fail.
 ________________________________________
 V. THE BEASTS & THE ENVIRONMENT
@@ -61,7 +59,7 @@ Gorgon (Elite)	15	150	Petrify: Forces a turn skip. (Cannot stun-lock).
 Lava (Env)	10	—	Deals 10 damage when stood on.
 ________________________________________
 VI. SCORING & VICTORY
-•	Gem Set Bonus: Completing a set (Egg, Opal, Glow, Elbaite) = 50,000 Points. Stackable
+•	Gem Set Bonus: Completing a set (Egg, Opal, Glow, Elbaite) = 25,000 Points. Stackable
 •	Death Protocol: If a player dies, they drop 50% of Special Items rounded down
 (The minimum round down is 1) and they are out of the game.
 
