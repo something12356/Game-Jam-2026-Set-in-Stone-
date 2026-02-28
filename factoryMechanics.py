@@ -51,7 +51,7 @@ class Contract:
 
 ## Each player will have their own factory
 class Factory:
-    def __init__(self, buildings: list[Building], ores: list[Ore], capacity: int):
+    def __init__(self, name, buildings: list[Building], ores: list[Ore], capacity: int):
         self.buildings = buildings
         self.ores = ores
         self.capacity = capacity
@@ -205,8 +205,8 @@ MINE_CLASSES = {"CopperMineBasic": CopperMineBasic, "CopperMineAdvanced":CopperM
 RESOURCE_CLASSES = {"Iron":Iron, "Copper":Copper, "NullResource": NullResource}
 
 if __name__ == '__main__':
-    factory1 = Factory([CopperMineBasic()], [Copper(2), Iron(0), FireOpal(0)], 10)
-    factory2 = Factory([CopperMineBasic()], [Copper(2), Iron(0), FireOpal(0)], 10)
+    factory1 = Factory("p1", [CopperMineBasic()], [Copper(2), Iron(0), FireOpal(0)], 10)
+    factory2 = Factory("p2", [CopperMineBasic()], [Copper(2), Iron(0), FireOpal(0)], 10)
     contracts = [Contract(factory1, factory2, [(3, "Copper"), (1, "Iron")], [(2, "Copper"), (1, "Increase slot")], 130)]
 
     t=0
