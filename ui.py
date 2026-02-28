@@ -91,6 +91,8 @@ class Player:
         y = 0
         buttons: list[tuple[IRect, str]] = []
         for m_id, cls in backend.MINE_CLASSES.items():
+            if not cls.can_buy_directly:
+                continue
             costs = sorted(cls.cost, key=lambda cost: cost[1])
             cost_str = (f'{abbreviate(cls.name)}: {cls.productionRate} '
                         f'{cls.produces.name}/sec (COST: '

@@ -132,6 +132,7 @@ class Building:
     name: str
     produces: type[Ore]
     productionRate: float
+    can_buy_directly: bool = True
 
     def __init__(self, name: str, oreType, productionRate):
         self.name = name
@@ -146,6 +147,7 @@ class BlockedSlot(Building):
     name = "(Blocked Slot)"
     produces = NullResource
     productionRate = 0
+    can_buy_directly = False
 
     def __init__(self):
         super().__init__("BlockedSlot", NullResource, 0)
