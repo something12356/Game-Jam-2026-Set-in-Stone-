@@ -8,7 +8,7 @@ from pygame import Vector2 as Vec2
 from pygame import FRect, Rect as IRect
 
 import factoryMechanics as backend
-from factoryMechanics import Factory, CopperMineBasic, Copper, Iron, Building
+from factoryMechanics import Factory, CopperMineBasic, Copper, Iron, Building, Contract
 
 ORE_TEXT_COLOR = 'white'
 BUILDING_TEXT_COLOR = 'white'
@@ -29,6 +29,10 @@ class ScreenInfo:
             topleft=self.player_right_area.topleft)
         self.player_buy_area = self.player_right_area.scale_by(1, 0.4).move_to(
             topleft=self.player_buildings_area.bottomleft)
+        self.left_button_area = self.menu_area.scale_by(0.5, 1).move_to(
+            topleft=self.menu_area.topleft)
+        self.right_button_area = self.menu_area.scale_by(0.5, 1).move_to(
+            topleft=self.left_button_area.topright)
         return self
 
 
@@ -72,6 +76,10 @@ class Player:
     color: pygame.Color
     factory: Factory
     area_getter: Callable[[], IRect]
+    all_contracts: list[Contract]
+
+    def begin(self):
+        self.buttons = []
 
     @property
     def area(self):
@@ -128,8 +136,38 @@ class Player:
         self.render_ores(clamped_subsurf(dest, SC_INFO.player_ores_area))
         self.buttons = self.render_buy_buttons(clamped_subsurf(dest, SC_INFO.player_buy_area))
 
+    def _render_single_contract(self, c: Contract) -> pygame.Surface:
+        tex = load_from_fontspec('Helvetica', 'sans-serif').render(
+            c.to_string(), True, 'white', wraplength=self.area.w // 2 - 20
+        )
+        tex = tex.subsurface(tex.get_bounding_rect())
+        dest = pygame.Surface(tex.get_rect().size + Vec2(6, 6))
+        pygame.draw.rect(dest, pygame.Color(50, 50, 50), dest.get_rect())
+        dest.blit(tex, tex.get_rect(center=dest.get_rect().center))
+        return dest
+
+    def render_contracts_area(self, dest: pygame.Surface):
+        dest.fill(self.color.lerp(pygame.Color(0, 0, 0), 0.9))
+        x = y = 5
+        h_max = 1
+        for c in self.all_contracts:
+            if c.party2 is self.factory:
+                # Reverse it ('without loss of generality, self is c.party1')
+                c = Contract(c.party2, c.party1, c.terms2, c.terms2, c.timeLimit)
+            if c.party1 is not self.factory:
+                continue
+            tex = self._render_single_contract(c)  # TODO
+            w, h = tex.size
+            if x + w > dest.width:
+                x = 5
+                y += h_max + 5  # Next 'line'
+                h_max = 1
+            dest.blit(tex, (x, y))
+            x += w + 5
+            h_max = max(h_max, h)
+
     def onclick(self, pos: Vec2):
-        print('Recv onclick')
+        print('Recv Player.onclick')
         c_idx = IRect(pos, (1, 1)).collidelist([r for r, _name in self.buttons])
         if c_idx == -1:
             print(pos, [r for r, _name in self.buttons])
@@ -138,22 +176,67 @@ class Player:
         self.factory.createBuilding(s)
 
 
+@dataclasses.dataclass
+class BottomMenu:
+    area_getter: Callable[[], IRect]
+    screen_num: int = 0
+
+    def begin(self):
+        self.buttons: list[tuple[IRect, Callable[[], None]]] = []
+
+    @property
+    def area(self):
+        return self.area_getter()
+
+    def display(self, dest: pygame.Surface):
+        font = load_from_fontspec('Helvetica', 'sans-serif')
+        font.align = pygame.FONT_CENTER
+        abt = font.render(
+            'Factories', True, 'white', wraplength=dest.width // 2 - 7
+        )
+        abt_r = abt.get_rect(left=2, centery=dest.get_rect().centery)
+        cbt = font.render(
+            'Contracts', True, 'white', wraplength=dest.width // 2 - 7
+        )
+        cbt_r = cbt.get_rect(right=dest.get_rect().right - 2,
+                             centery=dest.get_rect().centery)
+        pygame.draw.rect(dest, pygame.Color(50, 50, 50), abt_r.inflate(2, 2))
+        pygame.draw.rect(dest, pygame.Color(50, 50, 50), cbt_r.inflate(2, 2))
+
+        dest.blit(abt, abt_r)
+        dest.blit(cbt, cbt_r)
+
+        self.buttons = [(abt_r, self.set_left), (cbt_r, self.set_right)]
+
+    def set_left(self):
+        self.screen_num = 0
+
+    def set_right(self):
+        self.screen_num = 1
+
+    def onclick(self, pos: Vec2):
+        print('Recv Menu.onclick')
+        c_idx = IRect(pos, (1, 1)).collidelist([r for r, _name in self.buttons])
+        if c_idx == -1:
+            print(pos, [r for r, _name in self.buttons])
+            return
+        _, action = self.buttons[c_idx]
+        action()
+
+
 def render_player_area(dest: pygame.Surface, data):  # TODO: get the data!
     dest.fill(data)
 
 
 def render_players_screen(screen: pygame.Surface, players: list[Player]):
-    players[0].render_area(screen.subsurface(SC_INFO.base_player_area))
-    players[1].render_area(screen.subsurface(SC_INFO.base_player_area.move_to(
-        left=SC_INFO.main_area.w / 2)))
-    players[2].render_area(screen.subsurface(SC_INFO.base_player_area.move_to(
-        top=SC_INFO.main_area.h / 2)))
-    players[3].render_area(screen.subsurface(SC_INFO.base_player_area.move_to(
-        topleft=Vec2(SC_INFO.main_area.size) / 2)))
+    for p in players:
+        p.begin()
+        # p.render_area(clamped_subsurf(screen, p.area))
+        p.render_area(clamped_subsurf(screen, p.area))
 
 
-def demo_factory():
-    factory1 = Factory([CopperMineBasic()], [Copper(2), Iron(0)], 10)
+def demo_factory(name: str):
+    factory1 = Factory(name, [CopperMineBasic()], [Copper(2), Iron(0)], 10)
     return factory1
 
 
@@ -164,15 +247,18 @@ def main():
     clock = pygame.time.Clock()
     running = True
 
-    p1 = Player(pygame.Color("red"), demo_factory(),
-                lambda: SC_INFO.base_player_area)
-    p2 = Player(pygame.Color("yellow"), demo_factory(),
-                lambda: SC_INFO.base_player_area.move_to(left=SC_INFO.main_area.w / 2))
-    p3 = Player(pygame.Color("green"), demo_factory(),
-                lambda: SC_INFO.base_player_area.move_to(top=SC_INFO.main_area.h / 2))
-    p4 = Player(pygame.Color("blue"), demo_factory(),
-                lambda: SC_INFO.base_player_area.move_to(topleft=Vec2(SC_INFO.main_area.size) / 2))
+    contracts = []
+    p1 = Player(pygame.Color("Red"), demo_factory('Red'),
+                lambda: SC_INFO.base_player_area, contracts)
+    p2 = Player(pygame.Color("Yellow"), demo_factory('Yellow'),
+                lambda: SC_INFO.base_player_area.move_to(left=SC_INFO.main_area.w / 2), contracts)
+    p3 = Player(pygame.Color("Green"), demo_factory('Green'),
+                lambda: SC_INFO.base_player_area.move_to(top=SC_INFO.main_area.h / 2), contracts)
+    p4 = Player(pygame.Color("Blue"), demo_factory('Blue'),
+                lambda: SC_INFO.base_player_area.move_to(topleft=Vec2(SC_INFO.main_area.size) / 2), contracts)
     players = [p1, p2, p3, p4]
+    contracts.append(Contract(p1.factory, p2.factory, [(3, "Copper"), (1, "Iron")], [(2, "Copper"), (1, "Increase slot")], 130))
+    bm = BottomMenu(lambda: SC_INFO.menu_area)
 
     i = 0
     while running:
@@ -189,16 +275,26 @@ def main():
                 for pl in players:
                     if pl.area.collidepoint(pos):
                         pl.onclick(pos - pl.area.topleft)
+                if bm.area.collidepoint(pos):
+                    bm.onclick(pos - bm.area.topleft)
+
         i += 1
 
         # fill the screen with a color to wipe away anything from last frame
-        screen.fill("purple")
+        screen.fill("black")
 
         # RENDER YOUR GAME HERE
         if (i + 1) % 10 == 0:
             for p in players:
                 p.factory.mineLoop(collecting=True)
-        render_players_screen(screen, players)
+        bm.display(clamped_subsurf(screen, bm.area))
+        if bm.screen_num == 0:
+            render_players_screen(screen, players)
+        else:
+            assert bm.screen_num == 1
+            for p in players:
+                p.begin()
+                p.render_contracts_area(clamped_subsurf(screen, p.area))
 
         # flip() the display to put your work on screen
         pygame.display.flip()
