@@ -328,6 +328,7 @@ class Overlay:
             self.buttons += [(self.texas(2, lbb), self.pleft), (self.texas(2, rbb), self.pright)]
         max_w = 10
         ys = []
+        heights = []
         for n, t in terms:
             td = "Machine Slot" if t == "Increase slot" else t
             tex = load_from_fontspec('Helvetica', 'sans-serif').render(
@@ -335,38 +336,37 @@ class Overlay:
             )
             dest.blit(tex, txr := tex.get_rect(left=inner.left + 8, top=y))
             ys.append(y)
+            heights.append(tex.height)
             y += tex.height + 5
             max_w = max(max_w, txr.right)
-        for y, (n, t) in zip(ys, terms):
-            tex_m10 = load_from_fontspec('Courier New', 'monospace', size=15).render('-10', True, 'white')
-            txr_m10 = tex_m10.get_rect(left=max_w + 10, top=y + 2)
-            pygame.draw.rect(dest, Color(50, 50, 50), txx_m10 := txr_m10.inflate(6, 0), border_radius=8)
-            dest.blit(tex_m10, txr_m10)
-            self.buttons += [(self.texas(side, txx_m10), lambda t=t: self.adjust_quantity(side, t, -10))]
+        for h, y, (n, t) in zip(heights, ys, terms):
+            x = max_w
 
-            tex = load_from_fontspec('Courier New', 'monospace').render('-', True, 'white')
-            txr = tex.get_rect(left=txr_m10.right + 15, top=y)
-            pygame.draw.rect(dest, Color(50, 50, 50), txx := txr.inflate(txr.h - txr.w, 0), border_radius=8)
-            dest.blit(tex, txr)
-            self.buttons += [(self.texas(side, txx), lambda t=t: self.adjust_quantity(side, t, -1))]
+            x = self._display_button(dest, side, t, h, x, y, -10, offset=25)
+            x = self._display_button(dest, side, t, h, x, y, -1)
 
+            tex = load_from_fontspec('Courier New', 'monospace').render(
+                f'{n:>2}', True, 'white'
+            )
+            dest.blit(tex, txr := tex.get_rect(left=x + 20, top=y))
             x = txr.right
-            tex_val = load_from_fontspec('Courier New', 'monospace').render(f'{n}', True, 'white')
-            txr_val = tex_val.get_rect(left=x + 20, top=y)
-            dest.blit(tex_val, txr_val)
-            
-            x = txr_val.right
-            tex = load_from_fontspec('Courier New', 'monospace').render('+', True, 'white')
-            txr = tex.get_rect(left=x + 20, top=y)
-            pygame.draw.rect(dest, Color(50, 50, 50), txx := txr.inflate(txr.h - txr.w, 0), border_radius=8)
-            dest.blit(tex, txr)
-            self.buttons += [(self.texas(side, txx), lambda t=t: self.adjust_quantity(side, t, 1))]
 
-            tex_p10 = load_from_fontspec('Courier New', 'monospace', size=15).render('+10', True, 'white')
-            txr_p10 = tex_p10.get_rect(left=txr.right + 15, top=y + 2)
-            pygame.draw.rect(dest, Color(50, 50, 50), txx_p10 := txr_p10.inflate(6, 0), border_radius=8)
-            dest.blit(tex_p10, txr_p10)
-            self.buttons += [(self.texas(side, txx_p10), lambda t=t: self.adjust_quantity(side, t, 10))]
+            x = self._display_button(dest, side, t, h, x, y, 1, offset=15)
+            x = self._display_button(dest, side, t, h, x, y, 10)
+
+    def _display_button(self, dest: pygame.Surface, side: int, resource: str,
+                        h: int, x: int, y: int, n: int, offset: int = 20) -> int:
+        tex = load_from_fontspec('Courier New', 'monospace', size=15).render(
+            f'{f"{n:+}" if abs(n) != 1 else f"{n:+}"[0]}', True, 'white'
+        )
+        txx = IRect().move_to(height=h, width=max(h, tex.width + 10), left=x + offset, top=y)
+        txr = txx.move_to(size=tex.size, center=txx.center)
+        pygame.draw.rect(dest, Color(50, 50, 50), txx, border_radius=8)
+        dest.blit(tex, txr)
+        self.buttons += [
+            (self.texas(side, txx), lambda: self.adjust_quantity(side, resource, n))]
+        x = txr.right
+        return x
 
     def pleft(self):
         self.current.party2 = self.other_players[
