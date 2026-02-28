@@ -9,11 +9,18 @@ class Contract:
     ## Term2 is what party2 owes to party1
     ## Time limit is when the contract must be fulfilled by
     def __init__(self, party1, party2, terms1, terms2, timeLimit):
-        self.party1 = party1
-        self.party2 = party2
-        self.terms1 = terms1
-        self.terms2 = terms2
-        self.timeLimit = timeLimit
+        self.party1: Factory = party1
+        self.party2: Factory = party2
+        self.terms1: list[tuple[int, str]] = terms1
+        self.terms2: list[tuple[int, str]] = terms2
+        self.timeLimit: int = timeLimit
+
+    def to_string(self):
+        return ('You give: \n    ' +
+                ', '.join(f'{num} {resource}' for num, resource in self.terms1)
+                + f'\n{self.party2.name} gives you:\n    ' +
+                ', '.join(f'{num} {resource}' for num, resource in self.terms2)
+                + f'\nEvery {self.timeLimit} turns')
 
     ## Currently assuming all terms are just to do with ores, might want to update later to include other items
     ## So the term format will be same as cost format for buildings at the moment
@@ -52,6 +59,7 @@ class Contract:
 ## Each player will have their own factory
 class Factory:
     def __init__(self, name, buildings: list[Building], ores: list[Ore], capacity: int):
+        self.name = name
         self.buildings = buildings
         self.ores = ores
         self.capacity = capacity
@@ -81,10 +89,10 @@ class Factory:
 
     ## Spend a fire opal to increase production of a machine
     def increaseProduction(self, buildingNumber):
-        for ore in ores:
+        for ore in self.ores:
             if ore.type == FireOpal:
                 if ore.amount >= 1:
-                    buildings[buildingNumber].productionRate *= 2
+                    self.buildings[buildingNumber].productionRate *= 2
 
     ## All the buildings mine their ores, collects ore from building periodically
     def mineLoop(self, collecting=False):
