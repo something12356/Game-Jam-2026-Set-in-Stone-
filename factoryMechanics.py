@@ -103,6 +103,6 @@ while True:
     ## Only collect every 10 timesteps
     factory1.mineLoop(not(t%10))
     factory1.getOres()
-    factory1.createBuilding(input())
+    factory1.createBuilding(input("If you want to create a building type its name now"))
     print("---")
 
