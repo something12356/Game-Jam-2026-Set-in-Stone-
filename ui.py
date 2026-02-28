@@ -24,9 +24,9 @@ class ScreenInfo:
         self.main_area = self.rem_area.scale_by(1, 0.9).move_to(topleft=self.turnCount_area.bottomleft)
         self.menu_area = self.rem_area.scale_by(1, 0.1).move_to(topleft=self.main_area.bottomleft)
         self.base_player_area = self.main_area.scale_by(0.5, 0.5).move_to(topleft=self.main_area.topleft)
-        self.player_ores_area = self.base_player_area.scale_by(0.15, 1).move_to(
+        self.player_ores_area = self.base_player_area.scale_by(0.18, 1).move_to(
             topleft=self.base_player_area.topleft)
-        self.player_right_area = self.base_player_area.scale_by(0.85, 1).move_to(
+        self.player_right_area = self.base_player_area.scale_by(0.82, 1).move_to(
             topleft=self.player_ores_area.topright)
         self.player_buildings_area = self.player_right_area.scale_by(1, 0.4).move_to(
             topleft=self.player_right_area.topleft)
@@ -232,6 +232,7 @@ class Overlay:
     state: State
     players: list[Player]
     current: Contract = None
+    t: int = 0
 
     def begin(self):
         self.buttons: list[tuple[IRect, Callable[[], None]]] = []
@@ -242,11 +243,23 @@ class Overlay:
 
     @property
     def main_section_rel(self):
-        return self.area.scale_by(1, 0.85).move_to(topleft=(0, 0))
+        return self.area.scale_by(1, 0.75).move_to(topleft=(0, 0))
+
+    @property
+    def deadline_container_rel(self):
+        return self.area.scale_by(1, 0.1).move_to(topleft=self.main_section_rel.bottomleft)
+
+    @property
+    def deadline_intro_rel(self):
+        return self.deadline_container_rel.scale_by(0.5, 1).move_to(topleft=self.deadline_container_rel.topleft)
+
+    @property
+    def deadline_main_rel(self):
+        return self.deadline_container_rel.scale_by(0.5, 1).move_to(topleft=self.deadline_intro_rel.topright)
 
     @property
     def bot_section_rel(self):
-        return self.area.scale_by(1, 0.15).move_to(topleft=self.main_section_rel.bottomleft)
+        return self.area.scale_by(1, 0.15).move_to(topleft=self.deadline_container_rel.bottomleft)
 
     @property
     def cancel_button_rel(self):
@@ -276,7 +289,7 @@ class Overlay:
             self.current = Contract(
                 self.state.creating_contract, self.other_players[0],
                 [(0, t) for t in backend.TRADE_POSSIBILITIES],
-                [(0, t) for t in backend.TRADE_POSSIBILITIES], -1)
+                [(0, t) for t in backend.TRADE_POSSIBILITIES], self.t + 30)  # TODO DEFAULT
         # CANCEL
         cbb = self.cancel_button_rel.inflate(-4, -4)
         pygame.draw.rect(dest, pygame.Color(50, 50, 50), cbb)
@@ -294,11 +307,33 @@ class Overlay:
         # Register buttons, ig
         self.buttons += [(cbb, self.action_cancel)]
 
+        self.display_deadline(dest)
+
         self.display_side(clamped_subsurf(dest, self.left_main_rel), self.current.terms1, 1)
         self.display_side(clamped_subsurf(dest, self.right_main_rel), self.current.terms2, 2)
 
+    def display_deadline(self, dest: pygame.Surface):
+        dlc = self.deadline_container_rel.inflate(-4, -4)
+        pygame.draw.rect(dest, pygame.Color(20, 20, 20), dlc)
+        tex = load_from_fontspec('Helvetica', 'sans-serif').render(
+            'Contract deadline (turn number):', True, 'white'
+        )
+        dest.blit(tex, tex.get_rect(center=self.deadline_intro_rel.center))
+        tex = load_from_fontspec('Courier New', 'monospace').render(
+            f'{self.current.timeLimit:^3}', True, 'white'
+        )
+        dest.blit(tex, txr := tex.get_rect(center=self.deadline_main_rel.center))
+        # side=1 to force no texas adjustment
+        xl = self._display_button(dest, 1, '<deadline>', tex.height, txr.left, txr.top, -1, is_left=True)
+        xl = self._display_button(dest, 1, '<deadline>', tex.height, xl, txr.top, -10, is_left=True)
+
+        xr = self._display_button(dest, 1, '<deadline>', tex.height, txr.right, txr.top, 1)
+        xr = self._display_button(dest, 1, '<deadline>', tex.height, xr, txr.top, 10)
+        # dest.blit(tex, txr := tex.get_rect(left=x + 20, top=y))
+        # x = txr.right
+
     def display_side(self, dest: pygame.Surface, terms: list[tuple[int, str]], side: int):
-        inner = dest.get_rect().inflate(-10, -10)  # le bordure
+        inner = dest.get_rect().inflate(-5, -5)  # le bordure
         y = 10  # 5 + pad 5
         pygame.draw.rect(dest, pygame.Color(20, 20, 20), inner)
         if side == 1:
@@ -355,17 +390,23 @@ class Overlay:
             x = self._display_button(dest, side, t, h, x, y, 10)
 
     def _display_button(self, dest: pygame.Surface, side: int, resource: str,
-                        h: int, x: int, y: int, n: int, offset: int = 20) -> int:
+                        h: int, x: int, y: int, n: int, offset: int = 20,
+                        is_left: bool = False) -> int:
         tex = load_from_fontspec('Courier New', 'monospace', size=15).render(
             f'{f"{n:+}" if abs(n) != 1 else f"{n:+}"[0]}', True, 'white'
         )
         txx = IRect().move_to(height=h, width=max(h, tex.width + 10), left=x + offset, top=y)
+        if is_left:
+            txx.right = x - offset  # overwrite .left
         txr = txx.move_to(size=tex.size, center=txx.center)
         pygame.draw.rect(dest, Color(50, 50, 50), txx, border_radius=8)
         dest.blit(tex, txr)
         self.buttons += [
             (self.texas(side, txx), lambda: self.adjust_quantity(side, resource, n))]
-        x = txr.right
+        if is_left:
+            x = txr.left
+        else:
+            x = txr.right
         return x
 
     def pleft(self):
@@ -383,6 +424,9 @@ class Overlay:
 
     def adjust_quantity(self, side: int, res: str, amount: int) -> None:
         ls = self.current.terms1 if side == 1 else self.current.terms2
+        if res == '<deadline>':
+            self.current.timeLimit = max(self.current.timeLimit + amount, 0)
+            return
         for i, (n, t) in enumerate(ls):
             if t == res:
                 ls[i] = (max(n + amount, 0), t)
@@ -464,9 +508,9 @@ def render_players_screen(screen: pygame.Surface, players: list[Player], playerT
 
 def demo_factory(name: str):
     factory1 = Factory(name, [CopperMineBasic()],
-                       [Copper(1200), Iron(100), Titanium(50),
+                       [Copper(5),
                         *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
-                          if oc != Copper and oc != NullResource and oc != Iron and oc != Titanium)], 10)
+                          if oc != Copper and oc != NullResource)], 10)
     return factory1
 
 def render_turnCount(dest: pygame.Surface, turn):
@@ -542,6 +586,7 @@ def main():
             for p in players:
                 p.factory.mineLoop(collecting=True)
             t += 1
+            ol.t = t
         bm.display(clamped_subsurf(screen, bm.area))
         if bm.screen_num == 0:
             render_players_screen(screen, players, playerTurn)

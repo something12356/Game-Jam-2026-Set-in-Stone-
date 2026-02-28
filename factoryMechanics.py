@@ -246,8 +246,9 @@ class TantalumMine(Building):
 
 
 MINE_CLASSES = {"CopperMineBasic": CopperMineBasic, "CopperMineAdvanced":CopperMineAdvanced, "IronMine":IronMine, "TitaniumMine":TitaniumMine, "TantalumMine":TantalumMine, "BlockedSlot": BlockedSlot}
-RESOURCE_CLASSES = {"Iron":Iron, "Copper":Copper, "Titanium":Titanium, "Tantalum":Tantalum, "NullResource": NullResource}
-TRADE_POSSIBILITIES = (set(RESOURCE_CLASSES) - {"NullResource"}) | {"Increase slot"}
+RESOURCE_CLASSES = {"Copper":Copper, "Iron":Iron, "Titanium":Titanium, "Tantalum":Tantalum, "NullResource": NullResource}
+TRADE_POSSIBILITIES = list(RESOURCE_CLASSES) + ["Increase slot"]
+TRADE_POSSIBILITIES.remove('NullResource')
 
 if __name__ == '__main__':
     factory1 = Factory("p1", [CopperMineBasic()], [Copper(2), Iron(0), Titanium(0), Tantalum(0), FireOpal(0)], 10)
