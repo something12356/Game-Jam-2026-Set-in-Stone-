@@ -16,4 +16,7 @@ Tweak numbers with playtesting
 
 Add a way to randomize starting resources
 
+Need a way to show 'errors' e.g. if player doesn't have enough resources, or all machine slots full
+
+Need proper turns not time-based but text-turn button
 
