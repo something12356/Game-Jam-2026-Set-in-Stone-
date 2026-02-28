@@ -48,7 +48,21 @@ SC_INFO = ScreenInfo().from_sc_size(Vec2(1200, 750))
 
 
 def clamped_subsurf(s: pygame.Surface, r: IRect | FRect):
-    return s.subsurface(r.clamp(s.get_rect()))
+    r2 = r.clamp(s.get_rect())
+    r2.move_to(top=max(r2.top, 0), left=max(r2.left, 0), size=r2.size)
+    # print(s.get_rect())
+    left = max(r2.left, 0)
+    top = max(r2.top, 0)
+    right = min(r2.right, s.width)
+    bottom = min(r2.bottom, s.height)
+    width = right - left
+    height = bottom - top
+    r2 = IRect(left, top, width, height)
+    try:
+        return s.subsurface(r2)
+    except ValueError:
+        print(s, r2)
+        raise
 
 
 @functools.cache
@@ -216,6 +230,7 @@ class Player:
 class Overlay:
     area_getter: Callable[[], IRect]
     state: State
+    players: list[Player]
     current: Contract = None
 
     def begin(self):
@@ -249,13 +264,17 @@ class Overlay:
     def right_main_rel(self):
         return self.main_section_rel.scale_by(0.5, 1).move_to(topright=self.main_section_rel.topright)
 
+    @property
+    def other_players(self):
+        return [p.factory for p in self.players if p.factory is not self.state.creating_contract]
+
     def display(self, dest: pygame.Surface):
         self.begin()
         if self.state.creating_contract is None:
             return
         if self.current is None:
             self.current = Contract(
-                self.state.creating_contract, None,
+                self.state.creating_contract, self.other_players[0],
                 [(0, t) for t in backend.TRADE_POSSIBILITIES],
                 [(0, t) for t in backend.TRADE_POSSIBILITIES], -1)
         # CANCEL
@@ -284,9 +303,23 @@ class Overlay:
         pygame.draw.rect(dest, pygame.Color(20, 20, 20), inner)
         if side == 1:
             tex = load_from_fontspec('Helvetica', 'sans-serif', align=pygame.FONT_CENTER).render(
-                'You', True, 'white'
+                f'{self.current.party1.name}', True, 'white'
             )
             pygame.draw.rect(dest, pygame.Color(30, 30, 30), tex.get_rect(width=inner.width - 10, centerx=inner.centerx, top=y).inflate(2, 2))
+            dest.blit(tex, tex.get_rect(centerx=inner.centerx, top=y))
+            y += tex.height + 10  # 5 pad each
+        else:
+            pygame.draw.aalines(dest, pygame.Color(50, 50, 50), True,
+                                [(15, y + 11), (23, y + 19), (23, y + 3)])
+            pygame.draw.aalines(dest, pygame.Color(50, 50, 50), True,
+                                [(dest.width - 16, y + 11), (dest.width - 24, y + 19), (dest.width - 24, y + 3)])
+            tex = load_from_fontspec('Helvetica', 'sans-serif',
+                                     align=pygame.FONT_CENTER).render(
+                f'{self.current.party2.name}', True, 'white'
+            )
+            pygame.draw.rect(dest, pygame.Color(30, 30, 30),
+                             tex.get_rect(width=inner.width - 60, centerx=inner.centerx,
+                                          top=y).inflate(2, 2))
             dest.blit(tex, tex.get_rect(centerx=inner.centerx, top=y))
             y += tex.height + 10  # 5 pad each
         max_w = 10
@@ -455,7 +488,7 @@ def main():
     players = [p1, p2, p3, p4]
     contracts.append(Contract(p1.factory, p2.factory, [(3, "Copper"), (1, "Iron")], [(2, "Copper"), (1, "Increase slot")], 130))
     bm = BottomMenu(lambda: SC_INFO.menu_area)
-    ol = Overlay(lambda: SC_INFO.overlay_area, state)
+    ol = Overlay(lambda: SC_INFO.overlay_area, state, players)
 
     i = 0
     t = 0
@@ -467,11 +500,14 @@ def main():
             if event.type == pygame.WINDOWRESIZED or event.type == pygame.WINDOWSIZECHANGED:
                 new_size = Vec2(event.x, event.y)  # hope surf got resized??
                 SC_INFO.from_sc_size(new_size)
+                screen = pygame.Surface(screen_real.size, pygame.SRCALPHA)
             if event.type == pygame.MOUSEBUTTONUP:
                 pos = Vec2(event.pos)
-                if state.creating_contract:
+                if state.creating_contract is not None:
+                    print('Click -> Overlay')
                     ol.onclick(pos - ol.area.topleft)
                 else:
+                    print('Click -> Regular')
                     pl = players[playerTurn]
                     if pl.area.collidepoint(pos):
                         pl.onclick(pos - pl.area.topleft)
