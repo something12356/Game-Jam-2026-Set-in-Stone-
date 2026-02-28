@@ -1,58 +1,109 @@
 import pygame
+import sys
 
 class Factory:
-    def __init__(self, buildings):
-        self.buildings: list[Building] = buildings
+    def __init__(self, buildings, ores):
+        self.buildings = buildings
+        self.ores = ores
 
-    def createBuilding(self, name, oreType, productionRate):
-        building = Building(name, oreType, productionRate)
+    def createBuilding(self, buildingType):
+        if buildingType == "":
+            return
+        building = getattr(sys.modules[__name__], buildingType)()
+        cost = building.cost
+        for oreCost in cost:
+            for ore in self.ores:
+                if ore.type == oreCost[1]:
+                    if ore.amount >= oreCost[0]:
+                        continue
+                    else:
+                        print("You cannot afford this!")
+                        return
+        for oreCost in cost:
+            for ore in self.ores:
+                if ore.type == oreCost[1]:
+                    ore.amount -= oreCost[0]
         self.buildings.append(building)
 
-    def mineLoop(self):
+    ## Need to have "Collecting ore from buildings" as a feature rn its automatic? Or maybe not idk
+    def mineLoop(self, collecting=False):
         for building in self.buildings:
             building.mine()
 
-    def get_ores(self) -> dict[str, int]:
-        ore_dict = {building.ore.type: 0 for building in self.buildings}
-        for building in self.buildings:
-            ore_dict[building.ore.type] += building.ore.amount
-        return ore_dict
-
-    def getOres(self):
         oreDict = {building.ore.type : 0 for building in self.buildings}
+        print(oreDict)
         for building in self.buildings:
             oreDict[building.ore.type] += building.ore.amount
+
+        if collecting:
+            for ore in self.ores:
+                if ore.type in oreDict:
+                    ore.amount += oreDict[ore.type]
+
+            for building in self.buildings:
+                building.ore.amount = 0
+
+    def getOres(self):
+        for building in self.buildings:
             print(f'{building.name} | {building.ore.type} | {building.ore.amount}')
-        
-        print()
-        for i in oreDict:
-            print(f'Total {i} | {oreDict[i]}')
+
+        print('')
+        for i in self.ores:
+            print(f'Total {i.type} | {i.amount:.2f}')
+
+
+
     
 # Add capability to mine multiple ores with same building
 class Building:
     def __init__(self, name, oreType, productionRate):
         self.name = name
-        self.ore = Ore(0, oreType)
+        self.ore = oreType(0)
         self.productionRate = productionRate
 
     def mine(self):
         self.ore.amount += self.productionRate
 
+class CopperMineBasic(Building):
+    def __init__(self):
+        super().__init__("Basic Copper Mine", Copper, 0.1)
+        self.cost = [(3, "Copper")]
+
+class CopperMineAdvanced(Building):
+    def __init__(self):
+        super().__init__("Advanced Copper Mine", Copper, 0.5)
+        self.cost = [(10, "Copper"), (5, "Iron")]
+
+class IronMine(Building):
+    def __init__(self):
+        super().__init__("Iron Mine", Iron, 0.1)
+        self.cost = [(20, "Copper")]
+
 ## Have subclasses for different types of ores
 class Ore:
-    def __init__(self, amount, type):
+    def __init__(self, amount, type, colour):
         self.amount = amount
         self.type = type
+        self.colour = colour
 
+class Copper(Ore):
+    def __init__(self, amount):
+        super().__init__(amount, "Copper", "orange")
+
+class Iron(Ore):
+    def __init__(self, amount):
+        super().__init__(amount, "Iron", "grey")
 
 if __name__ == '__main__':
-    factory1 = Factory([])
+    factory1 = Factory([CopperMineBasic()], [Copper(2), Iron(0)])
 
-    factory1.createBuilding("building1", "ore1", 1)
-    factory1.createBuilding("building2", "ore2", 2)
-    factory1.createBuilding("building3", "ore1", 3)
-
+    t=0
     while True:
-        factory1.mineLoop()
+        t+=1
+        print(t)
+        ## Only collect every 10 timesteps
+        factory1.mineLoop(not(t%10))
         factory1.getOres()
-        input("---")
+        factory1.createBuilding(input())
+        print("---")
+
