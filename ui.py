@@ -39,6 +39,7 @@ class ScreenInfo:
             topleft=self.base_player_area.topleft)
         self.contract_new_area = self.base_player_area.scale_by(1, 0.15).move_to(
             bottomleft=self.base_player_area.bottomleft)
+        self.overlay_area = self.sc_rect.scale_by(0.9, 0.9)  # smae cetner?
         return self
 
 
@@ -190,7 +191,7 @@ class Player:
             'Propose contract', True, 'white'
         )
         dest.blit(tex, tex.get_rect(center=dest.get_rect().center))
-        self.buttons += [(crect.move(Vec2(SC_INFO.contract_new_area.topleft) - Vec2()), self.on_new_clicked)]
+        self.buttons += [(crect.move(Vec2(SC_INFO.contract_new_area.topleft) - SC_INFO.base_player_area.topleft), self.on_new_clicked)]
 
     def on_new_clicked(self):
         self.state.creating_contract = True
@@ -213,6 +214,7 @@ class Player:
 @dataclasses.dataclass
 class Overlay:
     area_getter: Callable[[], IRect]
+    state: State
 
     def begin(self):
         self.buttons: list[tuple[IRect, Callable[[], None]]] = []
@@ -246,6 +248,9 @@ class Overlay:
         return self.main_section_rel.scale_by(0.5, 1).move_to(topright=self.main_section_rel.topright)
 
     def display(self, dest: pygame.Surface):
+        self.begin()
+        if not self.state.creating_contract:
+            return
         # CANCEL
         pygame.draw.rect(dest, pygame.Color(50, 50, 50), self.cancel_button_rel.inflate(-4, -4))
         tex = load_from_fontspec('Helvetica', 'sans-serif', align=pygame.FONT_CENTER).render(
@@ -335,7 +340,8 @@ def render_turnCount(dest: pygame.Surface, turn):
 def main():
     # pygame setup
     pygame.init()
-    screen = pygame.display.set_mode(SC_INFO.sc_size, pygame.RESIZABLE)
+    screen_real = pygame.display.set_mode(SC_INFO.sc_size, pygame.RESIZABLE | pygame.SRCALPHA)
+    screen = pygame.Surface(screen_real.size, pygame.SRCALPHA)
     clock = pygame.time.Clock()
     running = True
 
@@ -352,6 +358,7 @@ def main():
     players = [p1, p2, p3, p4]
     contracts.append(Contract(p1.factory, p2.factory, [(3, "Copper"), (1, "Iron")], [(2, "Copper"), (1, "Increase slot")], 130))
     bm = BottomMenu(lambda: SC_INFO.menu_area)
+    ol = Overlay(lambda: SC_INFO.overlay_area, state)
 
     i = 0
     t = 0
@@ -363,21 +370,24 @@ def main():
                 new_size = Vec2(event.x, event.y)  # hope surf got resized??
                 SC_INFO.from_sc_size(new_size)
             if event.type == pygame.MOUSEBUTTONUP:
-                pos = Vec2(event.pos)
-                for pl in players:
-                    if pl.area.collidepoint(pos):
-                        pl.onclick(pos - pl.area.topleft)
-                if bm.area.collidepoint(pos):
-                    bm.onclick(pos - bm.area.topleft)
+                if state.creating_contract:
+                    ...  # TODO!!!!!!!!!!
+                else:
+                    pos = Vec2(event.pos)
+                    for pl in players:
+                        if pl.area.collidepoint(pos):
+                            pl.onclick(pos - pl.area.topleft)
+                    if bm.area.collidepoint(pos):
+                        bm.onclick(pos - bm.area.topleft)
 
         i += 1
 
         # fill the screen with a color to wipe away anything from last frame
         screen.fill("black")
 
-        if state.creating_contract:
-            print('CC')
-            state.creating_contract = False
+        # if state.creating_contract:
+        #     print('CC')
+        #     state.creating_contract = False
 
         render_turnCount(clamped_subsurf(screen, SC_INFO.turnCount_area), t)
         # RENDER YOUR GAME HERE
@@ -393,7 +403,15 @@ def main():
             for p in players:
                 p.begin()
                 p.render_contracts_area(clamped_subsurf(screen, p.area))
+            # IMPORTANT: LAST
+            if state.creating_contract:
+                s = pygame.Surface(screen.size, pygame.SRCALPHA)
+                pygame.draw.rect(s, pygame.Color(0, 0, 0, 129), s.get_rect())
+                screen.blit(s)
+                # pygame.draw.rect(screen, pygame.Color(0, 0, 0, 10), screen.get_rect())
+            ol.display(clamped_subsurf(screen, ol.area))
 
+        screen_real.blit(screen)
         pygame.display.flip()
         clock.tick(60)  # limits FPS to 60
 
