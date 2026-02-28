@@ -29,7 +29,9 @@ class Contract:
         print(self.terms1, self.terms2)
         for term in self.terms1:
             if term[1] == "Increase slot":
-                self.party2.capacity += term[0]
+                if self.party1.capacity >= 1:
+                    self.party2.capacity += term[0]
+                    self.party1.capacity -= term[0]
             else:
                 for ore1 in self.party1.ores:
                     if ore1.type == term[1]:
@@ -43,7 +45,9 @@ class Contract:
 
         for term in self.terms2:
             if term[1] == "Increase slot":
-                self.party1.capacity += term[0]
+                if self.party2.capacity >= 1:
+                    self.party1.capacity += term[0]
+                    self.party2.capacity -= term[0]
             else:            
                 for ore2 in self.party2.ores:
                     if ore2.type == term[1]:
@@ -144,6 +148,18 @@ class Iron(Ore):
     def __init__(self, amount):
         super().__init__(amount, "Iron", (61, 91, 114))
 
+class Titanium(Ore):
+    name = 'Titanium'
+
+    def __init__(self, amount):
+        super().__init__(amount, "Titanium", (255, 255, 255))
+
+class Tantalum(Ore):
+    name = 'Tantalum'
+
+    def __init__(self, amount):
+        super().__init__(amount, "Tantalum", (200, 200, 200))
+
 class FireOpal(Ore):
     name = 'FireOpal'
 
@@ -210,15 +226,32 @@ class IronMine(Building):
     def __init__(self):
         super().__init__("Iron Mine", Iron, 0.1)
 
+class TitaniumMine(Building):
+    cost = [(100, "Copper"), (50, "Iron")]
+    name = 'Titanium Mine'
+    produces = Titanium
+    productionRate = 0.1
 
-classes = {"Iron":Iron, "Copper":Copper, "CopperMineBasic": CopperMineBasic, "CopperMineAdvanced":CopperMineAdvanced, "IronMine":IronMine, "Block":BlockedSlot}
-MINE_CLASSES = {"CopperMineBasic": CopperMineBasic, "CopperMineAdvanced":CopperMineAdvanced, "IronMine":IronMine, "BlockedSlot": BlockedSlot}
-RESOURCE_CLASSES = {"Iron":Iron, "Copper":Copper, "NullResource": NullResource}
+    def __init__(self):
+        super().__init__("Iron Mine", Iron, 0.1)
+
+class TantalumMine(Building):
+    cost = [(100, "Iron"), (50, "Titanium")]
+    name = 'Tantalum Mine'
+    produces = Tantalum
+    productionRate = 0.1
+
+    def __init__(self):
+        super().__init__("Iron Mine", Iron, 0.1)
+
+
+MINE_CLASSES = {"CopperMineBasic": CopperMineBasic, "CopperMineAdvanced":CopperMineAdvanced, "IronMine":IronMine, "TitaniumMine":TitaniumMine, "TantalumMine":TantalumMine, "BlockedSlot": BlockedSlot}
+RESOURCE_CLASSES = {"Iron":Iron, "Copper":Copper, "Titanium":Titanium, "Tantalum":Tantalum, "NullResource": NullResource}
 TRADE_POSSIBILITIES = (set(RESOURCE_CLASSES) - {"NullResource"}) | {"Increase slot"}
 
 if __name__ == '__main__':
-    factory1 = Factory("p1", [CopperMineBasic()], [Copper(2), Iron(0), FireOpal(0)], 10)
-    factory2 = Factory("p2", [CopperMineBasic()], [Copper(2), Iron(0), FireOpal(0)], 10)
+    factory1 = Factory("p1", [CopperMineBasic()], [Copper(2), Iron(0), Titanium(0), Tantalum(0), FireOpal(0)], 10)
+    factory2 = Factory("p2", [CopperMineBasic()], [Copper(2), Iron(0), Titanium(0), Tantalum(0), FireOpal(0)], 10)
     contracts = [Contract(factory1, factory2, [(3, "Copper"), (1, "Iron")], [(2, "Copper"), (1, "Increase slot")], 130)]
 
     t=0

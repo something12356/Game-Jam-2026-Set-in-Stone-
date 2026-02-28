@@ -1,10 +1,10 @@
-Buiding                  |Cost   |Production     |
-BlockedSlot              |0B     |0B             |
-CopperMineBasic          |3C     |0.1C           | 
-CopperMineAdvanced       |10C20I |0.5C           |
-IronMine                 |20C    |0.1I           |
-TitaniumMine             |100C   |0.1Ti          |
-TantalumMine             |100I   |0.1Ta          |
+Buiding                  |Cost       |Production     |
+BlockedSlot              |0B         |0B             |
+CopperMineBasic          |3C         |0.1C           | 
+CopperMineAdvanced       |10C20I     |0.5C           |
+IronMine                 |20C        |0.1I           |
+TitaniumMine             |100C50I    |0.1Ti          |
+TantalumMine             |100I50Ti   |0.1Ta          |
 
 
 Initial Capacity 10 // This is missing an indicator
@@ -34,7 +34,7 @@ Any player       |D20      |100?       |Turn based (D4) |
 On turn, player can move and combat and upgrade/build/craft? 
 
 Resource cost formula: Version 1 initial
-Copper * 5 + Iron * 12 + Titanium * 300 + Tantalum * 700 + (All 4 a set of Egg + Opal + Glow + Elbaite) * 8000 = Value
+Copper * 5 + Iron * 12 + Titanium * 300 + Tantalum * 800 + (All 4 a set of Egg + Opal + Glow + Elbaite) * 8000 = Value
 
 On player death, they are considered to be out of the game. Special items are dropped on tile
 If other player reaches tile with item dropped can pick up 50%(round down) if from death (1 -> 1) else 100%
