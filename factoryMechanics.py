@@ -12,6 +12,12 @@ class Factory:
         for building in self.buildings:
             building.mine()
 
+    def get_ores(self) -> dict[str, int]:
+        ore_dict = {building.ore.type: 0 for building in self.buildings}
+        for building in self.buildings:
+            ore_dict[building.ore.type] += building.ore.amount
+        return ore_dict
+
     def getOres(self):
         oreDict = {building.ore.type : 0 for building in self.buildings}
         for building in self.buildings:
