@@ -942,7 +942,10 @@ def main():
     music_player.start()
     state.curr_player = p1
     while running:
-        playerTurn = t%4
+        playerTurn = t%len(players)
+        if players[playerTurn].dead:
+            players.pop(playerTurn)
+        playerTurn = t%len(players)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -999,7 +1002,7 @@ def main():
                 endgame(players)
             else:
                 # Only mine once everyone has had a turn
-                if t%4 == 0:
+                if t%len(players) == 0:
                     for p in players:
                         if p.factory.blockedFromPlaying > 0 or p.dead:
                             p.factory.blockedFromPlaying -= 1
