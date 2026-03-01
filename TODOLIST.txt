@@ -1,9 +1,5 @@
-We need a cap on the number of slots in a contract
 
-We need to add some logic to how proposing an extra slot works, as well as how the slots are dealt with
 
-Need some effect to show a contract being unfulfilled
-
-Need to solve game board size logic
+Make the board
 
 Need a way to contract special items
