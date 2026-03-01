@@ -4,8 +4,6 @@ We need a cap on the number of certain items to sell in contract
 
 We need to add some logic to how proposing an extra slot works, as well as how the slots are dealt with
 
-Probably need an indication for empty slots
-
 Need some effect to show a contract being unfulfilled
 
 Need to solve game board size logic
@@ -18,7 +16,4 @@ Add a way to randomize starting resources
 
 Need a way to show 'errors' e.g. if player doesn't have enough resources, or all machine slots full
 
-Need proper turns not time-based but text-turn button
-
 Petrified button??
-
