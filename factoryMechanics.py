@@ -49,6 +49,7 @@ class Contract:
                         else:
                             print("Party 1 has failed to fulfill the contract!")
                             self.party1.blockedFromPlaying = 3
+                            self.party1.buildings.append(BlockedSlot())
 
         for term in self.terms2:
             if term[1] == "Increase slot":
@@ -66,6 +67,7 @@ class Contract:
                         else:
                             print("Party 2 has failed to fulfill the contract!")
                             self.party2.blockedFromPlaying = 3
+                            self.party2.buildings.append(BlockedSlot())
 
 
 ## Each player will have their own factory
@@ -215,7 +217,7 @@ class Building:
 
 class BlockedSlot(Building):
     cost = [(0, "NullResource")]
-    name = "(Blocked Slot)"
+    name = "BlockedSlot"
     produces = NullResource
     productionRate = 0
     can_buy_directly = False
