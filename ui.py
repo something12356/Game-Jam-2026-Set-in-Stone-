@@ -26,6 +26,7 @@ class ScreenInfo:
         self.main_area = self.rem_area.scale_by(1, 0.9).move_to(topleft=self.turnCount_area.bottomleft)
         self.menu_area = self.rem_area.scale_by(1, 0.1).move_to(topleft=self.main_area.bottomleft)
         self.base_player_area = self.main_area.scale_by(0.5, 0.5).move_to(topleft=self.main_area.topleft)
+        self.base_player_area_rel = self.base_player_area.move_to(topleft=(0, 0))
         self.player_ores_area = self.base_player_area.scale_by(0.18, 1).move_to(
             topleft=(0, 0))
         self.player_right_area = self.base_player_area.scale_by(0.82, 1).move_to(
@@ -172,7 +173,7 @@ class Player:
             btn_rect = pygame.draw.rect(dest, rect_color, IRect(5, y, tex.width + 10, tex.height + 10))
             dest.blit(tex, (5 + 5, y + 5))
             y += tex.height + 15
-            btn_rect_outer = btn_rect.move(Vec2(SC_INFO.player_buy_area.topleft) - SC_INFO.base_player_area.topleft)
+            btn_rect_outer = btn_rect.move(Vec2(SC_INFO.player_buy_area.topleft))
             buttons.append((btn_rect_outer, lambda m_id=m_id: self.factory.createBuilding(m_id)))
         return buttons
 
@@ -575,7 +576,10 @@ def render_players_screen(screen: pygame.Surface, players: list[Player], playerT
         p.begin()
         # p.render_area(clamped_subsurf(screen, p.area))
         if players[playerTurn] == p:
-            brightness = 0.3
+            if p.factory.blockedFromPlaying > 0:
+                brightness = 0.6
+            else:
+                brightness = 0.3
         else:
             brightness = 0.9
         p.render_area(clamped_subsurf(screen, p.area), brightness)
@@ -720,6 +724,8 @@ def main():
                         ## Can't buy buildings if failed contract recently
                         if pl.area.collidepoint(pos):
                             pl.onclick(pos - pl.area.topleft)
+                    else:
+                        print('[blocked]')
                     if bm.area.collidepoint(pos):
                         bm.onclick(pos - bm.area.topleft)
                     if tb.area.collidepoint(pos):
