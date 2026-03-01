@@ -640,18 +640,39 @@ class Topbar:
 #     dest.blit(rendered, rendered.get_rect().move_to(center=dest.get_rect().center))
 
 
+class MusicPlayer:
+    def __init__(self):
+        pygame.mixer.init()
+        self.music_event = pygame.event.custom_type()
+        pygame.mixer.music.set_endevent(self.music_event)
+        self.rotation = ["CaveV1.wav", "CaveFast.wav"]
+        self.current = 0
+
+    def start(self):
+        pygame.mixer.music.load(self.rotation[self.current])
+        pygame.mixer.music.play()
+        pygame.mixer.music.set_volume(0.5)
+
+    def play_next(self):
+        self.current = (self.current + 1) % len(self.rotation)
+        self.start()
+
+    def update(self, e):
+        if e.type == self.music_event:
+            # end event
+            self.play_next()
+
+
 def main():
     # pygame setup
     pygame.init()
-    #pygame.mixer.init()
-    #pygame.mixer.music.load('CaveV1.wav')
-    #pygame.mixer.music.play(-1)
-    #pygame.mixer.music.set_volume(0.5)
+    pygame.mixer.init()
     screen_real = pygame.display.set_mode(SC_INFO.sc_size, pygame.RESIZABLE | pygame.SRCALPHA)
     screen = pygame.Surface(screen_real.size, pygame.SRCALPHA)
     clock = pygame.time.Clock()
     running = True
 
+    music_player = MusicPlayer()
     state = State()
     contracts = []
     p1 = Player(pygame.Color("Red"), demo_factory('Red'),
@@ -671,6 +692,8 @@ def main():
 
     i = 0
     t = 0
+
+    music_player.start()
     while running:
         playerTurn = t%4
         for event in pygame.event.get():
@@ -680,6 +703,8 @@ def main():
                 new_size = Vec2(event.x, event.y)  # hope surf got resized??
                 SC_INFO.from_sc_size(new_size)
                 screen = pygame.Surface(screen_real.size, pygame.SRCALPHA)
+            if event.type == music_player.music_event:
+                music_player.update(event)
             if event.type == pygame.MOUSEBUTTONUP:
                 pos = Vec2(event.pos)
                 if players[playerTurn].incoming_contracts:
