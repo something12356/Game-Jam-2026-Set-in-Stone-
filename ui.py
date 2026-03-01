@@ -166,8 +166,10 @@ class Player:
                         f'{cls.produces.name}/sec (COST: '
                         + ', '.join(f'{n} {ore_s}' for n, ore_s in costs)
                         + ')')
-            tex = font.render(cost_str, True, 'white')
-            btn_rect = pygame.draw.rect(dest, (50, 50, 50), IRect(5, y, tex.width + 10, tex.height + 10))
+            text_color = 'white' if self.factory.can_buy(m_id) else (120, 120, 120)
+            rect_color = ((50,) if self.factory.can_buy(m_id) else (68,)) * 3
+            tex = font.render(cost_str, True, text_color)
+            btn_rect = pygame.draw.rect(dest, rect_color, IRect(5, y, tex.width + 10, tex.height + 10))
             dest.blit(tex, (5 + 5, y + 5))
             y += tex.height + 15
             btn_rect_outer = btn_rect.move(Vec2(SC_INFO.player_buy_area.topleft) - SC_INFO.base_player_area.topleft)

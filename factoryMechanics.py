@@ -75,6 +75,18 @@ class Factory:
         self.capacity = capacity
         self.boosted = False
 
+    def can_buy(self, buildingType: str):
+        building = MINE_CLASSES[buildingType]()
+        cost = building.cost
+        if len(self.buildings) >= self.capacity:
+            return
+        for oreCost in cost:
+            for ore in self.ores:
+                if ore.type == oreCost[1]:
+                    if round(ore.amount, 3) < oreCost[0]:
+                        return False
+        return True
+
     # Creates building based on what player selects and if they have enough ores to buy it + if they are not above the current building limit
     def createBuilding(self, buildingType):
         if buildingType == "":
