@@ -108,6 +108,7 @@ class State:
     req_next_turn: bool = False
     req_boosting: bool = False
     is_end: bool = False
+    players: list[Player] = None
 
 
 @dataclasses.dataclass
@@ -390,13 +391,17 @@ class Player:
             h_max = max(h_max, h)
 
     def render_new_contract_button(self, dest: pygame.Surface):
+        enabled = len(self.state.players) > 1
+        text_color = 'white' if enabled else (120, 120, 120)
+        rect_color = ((50,) if enabled else (68,)) * 3
         crect = dest.get_rect().inflate(-10, -10)
-        pygame.draw.rect(dest, pygame.Color(50, 50, 50), crect)
+        pygame.draw.rect(dest, rect_color, crect)
         tex = load_from_fontspec('Helvetica', 'sans-serif').render(
-            'Propose contract', True, 'white'
+            'Propose contract', True, text_color
         )
         dest.blit(tex, tex.get_rect(center=dest.get_rect().center))
-        self.buttons += [(crect.move(Vec2(SC_INFO.contract_new_area.topleft) - SC_INFO.base_player_area.topleft), self.on_new_clicked)]
+        if enabled:
+            self.buttons += [(crect.move(Vec2(SC_INFO.contract_new_area.topleft) - SC_INFO.base_player_area.topleft), self.on_new_clicked)]
 
     def on_new_clicked(self):
         self.state.creating_contract = self.factory
@@ -951,6 +956,7 @@ def main():
 
     music_player.start()
     state.curr_player = p1
+    state.players = players
     while running:
         playerTurn = t%len(players)
         if players[playerTurn].dead:
