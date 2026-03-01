@@ -14,6 +14,7 @@ class Contract:
         self.terms1: list[tuple[int, str]] = terms1
         self.terms2: list[tuple[int, str]] = terms2
         self.timeLimit: int = timeLimit
+        self.dead: bool = False
 
     def to_string(self):
         return ('You give: \n    ' +
