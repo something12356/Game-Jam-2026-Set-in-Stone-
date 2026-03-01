@@ -244,7 +244,7 @@ class CopperMineBasic(Building):
 
 
 class CopperMineAdvanced(Building):
-    cost = [(10, "Copper"), (5, "Iron")]
+    cost = [(10, "Copper"), (20, "Iron")]
     name = 'Advanced Copper Mine'
     produces = Copper
     productionRate = 10
@@ -275,7 +275,7 @@ class TitaniumMine(Building):
         super().__init__("Titanium Mine", Titanium, self.productionRate)
 
 class TantalumMine(Building):
-    cost = [(100, "Iron"), (50, "Titanium")]
+    cost = [(75, "Copper"), (50, "Iron"), (15, "Titanium")]
     name = 'Tantalum Mine'
     produces = Tantalum
     productionRate = 2
