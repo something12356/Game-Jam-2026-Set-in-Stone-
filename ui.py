@@ -219,10 +219,15 @@ class Player:
         dest.blit(tex, tex.get_rect(center=dest.get_rect().center))
         return dest
 
-    def render_contracts(self, dest: pygame.Surface):
+    def render_contracts(self, dest: pygame.Surface, time):
         x = y = 5
         h_max = 1
         for c in self.all_contracts:
+            print(time)
+            print(c.timeLimit)
+            print('---')
+            if c.timeLimit <= time:
+                continue
             if c.party2 is self.factory:
                 # Reverse it ('without loss of generality, self is c.party1')
                 c = c.op()
@@ -250,9 +255,9 @@ class Player:
     def on_new_clicked(self):
         self.state.creating_contract = self.factory
 
-    def render_contracts_area(self, dest: pygame.Surface, brightness):
+    def render_contracts_area(self, dest: pygame.Surface, brightness, time):
         dest.fill(self.color.lerp(pygame.Color(0, 0, 0), brightness))
-        self.render_contracts(clamped_subsurf(dest, SC_INFO.contract_list_area))
+        self.render_contracts(clamped_subsurf(dest, SC_INFO.contract_list_area), time)
         self.render_new_contract_button(clamped_subsurf(dest, SC_INFO.contract_new_area))
         self.maybe_show_blocked(dest)
 
@@ -483,7 +488,7 @@ class Overlay:
     def adjust_quantity(self, side: int, res: str, amount: int) -> None:
         ls = self.current.terms1 if side == 1 else self.current.terms2
         if res == '<deadline>':
-            self.current.timeLimit = max(self.current.timeLimit + amount, self.t)
+            self.current.timeLimit = max(self.current.timeLimit + amount, self.t+4)
             return
         for i, (n, t) in enumerate(ls):
             if t == res:
@@ -799,7 +804,7 @@ def main():
                     brightness = 0.3
                 else:
                     brightness = 0.9
-                p.render_contracts_area(clamped_subsurf(screen, p.area), brightness)
+                p.render_contracts_area(clamped_subsurf(screen, p.area), brightness, t)
             # IMPORTANT: LAST
             if state.creating_contract:
                 s = pygame.Surface(screen.size, pygame.SRCALPHA)
