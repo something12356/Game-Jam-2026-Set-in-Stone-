@@ -27,7 +27,7 @@ class ScreenInfo:
         self.menu_area = self.rem_area.scale_by(1, 0.1).move_to(topleft=self.main_area.bottomleft)
         self.base_player_area = self.main_area.scale_by(0.5, 0.5).move_to(topleft=self.main_area.topleft)
         self.player_ores_area = self.base_player_area.scale_by(0.18, 1).move_to(
-            topleft=self.base_player_area.topleft)
+            topleft=(0, 0))
         self.player_right_area = self.base_player_area.scale_by(0.82, 1).move_to(
             topleft=self.player_ores_area.topright)
         self.player_buildings_area = self.player_right_area.scale_by(1, 0.4).move_to(
