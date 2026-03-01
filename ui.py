@@ -688,7 +688,7 @@ def endgame(players):
             if ore.type in ["DragonEgg", "FireOpal", "Elbaite", "Yooperlite"] and ore.amount >= 1:
                 special += 1
         if special == 4:
-            score += 25000
+            score += 8000
         if special > 4:
             print("WHATT????")
             quit()
