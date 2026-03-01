@@ -201,7 +201,7 @@ class DragonEgg(Ore):
     name = 'DragonEgg'
 
     def __init__(self, amount):
-        super().__init__(amount, "FireOpal", (0, 50, 150))
+        super().__init__(amount, "DragonEgg", (0, 50, 150))
 
 class Elbaite(Ore):
     name = 'Elbaite'
