@@ -14,7 +14,12 @@ from factoryMechanics import Factory, CopperMineBasic, CopperMineAdvanced, IronM
 
 ORE_TEXT_COLOR = 'white'
 BUILDING_TEXT_COLOR = 'white'
-
+A = False
+B = False
+C = False
+D = False
+E = False
+L = False
 
 class ScreenInfo:
     def from_sc_size(self, sc_size: Vec2):
@@ -643,19 +648,23 @@ def demo_factory(name: str):
                        [Copper(0),
                         *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
                           if oc != Copper and oc != NullResource)], 10)
-    Luck = random.randint(1, 100)
-    if Luck < 20:
+    Luck = random.randint(1, 1000)
+    if (Luck < 200 and A == False):
         factoryN = factoryA
-    elif Luck < 39:
+        A = True
+    elif (Luck < 399 and B == False):
         factoryN = factoryB
-    elif Luck < 58:
+        B = True
+    elif (Luck < 598 and C == False):
         factoryN = factoryC
-    elif Luck < 77:
+    elif (Luck < 797 and D == False):
         factoryN = factoryD
-    elif Luck < 96:
+    elif (Luck < 996 and E == False):
         factoryN = factoryE
-    else:
+    elif (Luck >= 996 and L == False):
         factoryN = factoryL
+    else:
+        demo_factory(name)
     return factoryN
 
 
