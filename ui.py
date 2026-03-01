@@ -98,6 +98,10 @@ def render_building(b: Building):
     dest.blit(tex, tex_area)
     return dest
 
+def render_emptySlot():
+    dest = pygame.Surface((40, 40))
+    pygame.draw.rect(dest, 'black', IRect(0, 0, 40, 40))
+    return dest
 
 def abbreviate(s: str):
     return ''.join(w[0] for w in s.split())
@@ -129,8 +133,11 @@ class Player:
         x = 5
         y = 5
         h_max = 1
-        for b in self.factory.buildings:
-            tex = render_building(b)
+        for i in range(self.factory.capacity):
+            if i < len(self.factory.buildings): 
+                tex = render_building(self.factory.buildings[i])
+            else:
+                tex = render_emptySlot()
             w, h = tex.size
             if x + w > dest.width:
                 x = 5
