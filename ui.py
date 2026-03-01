@@ -682,8 +682,16 @@ def render_players_screen(screen: pygame.Surface, players: list[Player], playerT
 def endgame(players):
     for p in players:
         score = 0
+        special = 0
         for ore in p.factory.ores:
             score += ore.amount*ore.value
+            if ore.type in ["DragonEgg", "FireOpal", "Elbaite", "Yooperlite"] and ore.amount >= 1:
+                special += 1
+        if special == 4:
+            score += 25000
+        if special > 4:
+            print("WHATT????")
+            quit()
         print(f'{p.factory.name} got a score of {score}!')
         
 
