@@ -961,6 +961,10 @@ def main():
         playerTurn = t%len(players)
         if players[playerTurn].dead:
             players.pop(playerTurn)
+        if len(players) == 1:
+            # We have a winner!
+            state.is_end = True
+            endgame(players)
         playerTurn = t%len(players)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
