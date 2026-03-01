@@ -48,6 +48,7 @@ class Contract:
                                     ore2.amount += term[0]
                         else:
                             print("Party 1 has failed to fulfill the contract!")
+                            self.party1.blockedFromPlaying = 3
 
         for term in self.terms2:
             if term[1] == "Increase slot":
@@ -64,6 +65,7 @@ class Contract:
                                     ore1.amount += term[0]
                         else:
                             print("Party 2 has failed to fulfill the contract!")
+                            self.party2.blockedFromPlaying = 3
 
 
 ## Each player will have their own factory
@@ -74,6 +76,7 @@ class Factory:
         self.ores = ores
         self.capacity = capacity
         self.boosted = False
+        self.blockedFromPlaying = 0 ## Made positive when the party can't play due to failing a contract
 
     def can_buy(self, buildingType: str):
         building = MINE_CLASSES[buildingType]()
