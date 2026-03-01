@@ -169,64 +169,65 @@ class Factory:
 class Ore:
     name: str
 
-    def __init__(self, amount, type, colour):
+    def __init__(self, amount, type, colour, value):
         self.amount: int = amount
         self.type: str = type
         self.colour = colour
+        self.value = value
 
 class Copper(Ore):
     name = 'Copper'
 
     def __init__(self, amount):
-        super().__init__(amount, "Copper", (120, 58, 45))
+        super().__init__(amount, "Copper", (120, 58, 45), 5)
 
 class Iron(Ore):
     name = 'Iron'
 
     def __init__(self, amount):
-        super().__init__(amount, "Iron", (61, 91, 114))
+        super().__init__(amount, "Iron", (61, 91, 114), 12)
 
 class Titanium(Ore):
     name = 'Titanium'
 
     def __init__(self, amount):
-        super().__init__(amount, "Titanium", (150, 150, 150))
+        super().__init__(amount, "Titanium", (150, 150, 150), 300)
 
 class Tantalum(Ore):
     name = 'Tantalum'
 
     def __init__(self, amount):
-        super().__init__(amount, "Tantalum", (0, 0, 0))
+        super().__init__(amount, "Tantalum", (0, 0, 0), 1000)
 
 class FireOpal(Ore):
     name = 'FireOpal'
 
     def __init__(self, amount):
-        super().__init__(amount, "FireOpal", (61, 91, 114))
+        super().__init__(amount, "FireOpal", (61, 91, 114), 0)
 
 class DragonEgg(Ore):
     name = 'DragonEgg'
 
     def __init__(self, amount):
-        super().__init__(amount, "DragonEgg", (0, 50, 150))
+        super().__init__(amount, "DragonEgg", (0, 50, 150), 0)
 
 class Elbaite(Ore):
     name = 'Elbaite'
 
     def __init__(self, amount):
-        super().__init__(amount, "Elbaite", (0, 255, 0))
+        super().__init__(amount, "Elbaite", (0, 255, 0), 0)
 
 class Yooperlite(Ore):
     name = 'Yooperlite'
 
     def __init__(self, amount):
-        super().__init__(amount, "Yooperlite", (254, 241, 0))
+        super().__init__(amount, "Yooperlite", (254, 241, 0), 0)
 
 class NullResource(Ore):
     name = "NullResource"
 
     def __init__(self, amount):
-        super().__init__(amount, "NullResource", (255, 0, 0))
+        super().__init__(amount, "NullResource", (255, 0, 0, 0))
 
 # Add capability to mine multiple ores with same building
 class Building:

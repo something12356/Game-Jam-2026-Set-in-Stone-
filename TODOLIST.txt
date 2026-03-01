@@ -2,4 +2,5 @@
 
 Make the board
 
-Need a way to contract special items
+1. Show the scores on end screen
+2. Button to kill player, which should remove them form game + void all contracts and make their score 0 in the end

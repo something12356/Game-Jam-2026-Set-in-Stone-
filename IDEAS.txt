@@ -35,7 +35,7 @@ Any player       |D20      |100?       |Turn based (D4) |
 On turn, player can move and combat and upgrade/build/craft? 
 
 Resource cost formula: Version 1 initial
-Copper * 5 + Iron * 12 + Titanium * 300 + Tantalum * 1000 + (All 4 a set of Egg + Opal + Glow + Elbaite) * 25000 = Value
+Copper * 5 + Iron * 12 + Titanium * 300 + Tantalum * 1000 + (All 4 a set of Egg + Opal + Glow + Elbaite) * 8000 = Value
 
 On player death, they are considered to be out of the game. Special items are dropped on tile
 If other player reaches tile with item dropped can pick up 50%(round down) if from death (1 -> 1) else 100%

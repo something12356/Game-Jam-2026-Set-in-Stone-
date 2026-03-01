@@ -10,8 +10,8 @@ from pygame import FRect, Rect as IRect
 
 import factoryMechanics as backend
 from factoryMechanics import (
-    Factory, CopperMineBasic, CopperMineAdvanced, IronMine, Copper, Iron,
-    Building, Contract, NullResource, Yooperlite, DragonEgg, Elbaite)
+    Factory, CopperMineBasic, CopperMineAdvanced, IronMine, Copper, Iron, DragonEgg, FireOpal, Elbaite, Yooperlite, Tantalum, Titanium,
+    Building, Contract, NullResource)
 
 ORE_TEXT_COLOR = 'white'
 BUILDING_TEXT_COLOR = 'white'
@@ -715,6 +715,21 @@ def render_players_screen(screen: pygame.Surface, players: list[Player], playerT
             brightness = 0.9
         p.render_area(clamped_subsurf(screen, p.area), brightness)
 
+def endgame(players):
+    for p in players:
+        score = 0
+        special = 0
+        for ore in p.factory.ores:
+            score += ore.amount*ore.value
+            if ore.type in ["DragonEgg", "FireOpal", "Elbaite", "Yooperlite"] and ore.amount >= 1:
+                special += 1
+        if special == 4:
+            score += 8000
+        if special > 4:
+            print("WHATT????")
+            quit()
+        print(f'{p.factory.name} got a score of {score}!')
+        
 
 def demo_factory():
     factories = []
@@ -746,9 +761,9 @@ def demo_factory():
                             *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
                             if oc != Copper and oc != Iron and oc != NullResource)], 11)
         factoryL = Factory('name', [],
-                        [Copper(0),
+                        [Copper(0), DragonEgg(1), Elbaite(1), Yooperlite(1), FireOpal(1),
                             *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
-                            if oc != Copper and oc != NullResource)], 10)
+                            if oc != Copper and oc != NullResource and oc != DragonEgg and oc != Elbaite and oc != Yooperlite and oc != FireOpal)], 10)
         Luck = random.randint(1, 1000)
         if (Luck < 200 and A == False):
             factories.append(factoryA)
@@ -846,6 +861,7 @@ class MusicPlayer:
 
 
 def main():
+    MAXTURN = 40
     # pygame setup
     pygame.init()
     pygame.mixer.init()
@@ -931,6 +947,8 @@ def main():
             bm.screen_num = 0
 
             t += 1
+            if t == MAXTURN:
+                endgame(players)
             # Only mine once everyone has had a turn
             if t%4 == 0:
                 for p in players:
