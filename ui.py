@@ -320,6 +320,10 @@ class Player:
                 special += 1
         if special == 4:
             score += 8000
+        else:
+            for ore in self.factory.ores:
+                if ore.type == "DragonEgg":
+                    score = score*1.2**(ore.amount)
         return score
 
     def maybe_show_done(self, dest: pygame.Surface):
@@ -782,6 +786,10 @@ def endgame(players):
                 special += 1
         if special == 4:
             score += 8000
+        else:
+            for ore in self.factory.ores:
+                if ore.type == "DragonEgg":
+                    score = score*1.2**(ore.amount)
         if special > 4:
             print("WHATT????")
             quit()
