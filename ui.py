@@ -639,6 +639,9 @@ def render_players_screen(screen: pygame.Surface, players: list[Player], playerT
             brightness = 0.9
         p.render_area(clamped_subsurf(screen, p.area), brightness)
 
+def endgame(p1, p2, p3, p4):
+    #Need to add a loop for calculation of scores
+        
 
 def demo_factory():
     factories = []
@@ -770,6 +773,7 @@ class MusicPlayer:
 
 
 def main():
+    MAXTURN = 40
     # pygame setup
     pygame.init()
     pygame.mixer.init()
@@ -852,6 +856,8 @@ def main():
         if state.req_next_turn:
             state.req_next_turn = False
             t += 1
+            if t == MAXTURN:
+                endgame(p1, p2, p3, p4)
             # Only mine once everyone has had a turn
             if t%4 == 0:
                 for p in players:
