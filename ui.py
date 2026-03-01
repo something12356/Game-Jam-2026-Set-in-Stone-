@@ -10,8 +10,8 @@ from pygame import FRect, Rect as IRect
 
 import factoryMechanics as backend
 from factoryMechanics import (
-    Factory, CopperMineBasic, CopperMineAdvanced, IronMine, Copper, Iron, DragonEgg, FireOpal, Elbaite, Yooperlite,
-    Building, Contract, NullResource, Yooperlite, DragonEgg, Elbaite)
+    Factory, CopperMineBasic, CopperMineAdvanced, IronMine, Copper, Iron, DragonEgg, FireOpal, Elbaite, Yooperlite, Tantalum, Titanium,
+    Building, Contract, NullResource)
 
 ORE_TEXT_COLOR = 'white'
 BUILDING_TEXT_COLOR = 'white'
