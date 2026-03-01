@@ -35,9 +35,13 @@ class Contract:
         print(self.terms1, self.terms2)
         for term in self.terms1:
             if term[1] == "Increase slot":
-                if self.party1.capacity >= 1:
+                if self.party1.capacity >= term[0]+1:
                     self.party2.capacity += term[0]
                     self.party1.capacity -= term[0]
+                else:
+                    print("Party 1 has failed to fulfill the contract!")
+                    self.party1.blockedFromPlaying = 3
+                    break
             else:
                 for ore1 in self.party1.ores:
                     if ore1.type == term[1]:
@@ -49,13 +53,17 @@ class Contract:
                         else:
                             print("Party 1 has failed to fulfill the contract!")
                             self.party1.blockedFromPlaying = 3
-                            self.party1.buildings.append(BlockedSlot())
+                            break
 
         for term in self.terms2:
             if term[1] == "Increase slot":
-                if self.party2.capacity >= 1:
+                if self.party2.capacity >= term[0]+1:
                     self.party1.capacity += term[0]
                     self.party2.capacity -= term[0]
+                else:
+                    print("Party 2 has failed to fulfill the contract!")
+                    self.party2.blockedFromPlaying = 3
+                    break
             else:            
                 for ore2 in self.party2.ores:
                     if ore2.type == term[1]:
@@ -67,7 +75,7 @@ class Contract:
                         else:
                             print("Party 2 has failed to fulfill the contract!")
                             self.party2.blockedFromPlaying = 3
-                            self.party2.buildings.append(BlockedSlot())
+                            break
 
 
 ## Each player will have their own factory
