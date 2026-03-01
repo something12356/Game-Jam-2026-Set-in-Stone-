@@ -255,7 +255,7 @@ class CopperMineBasic(Building):
     cost = [(3, "Copper")]
     name = 'Basic Copper Mine'
     produces = Copper
-    productionRate = 2
+    productionRate = 6
 
     def __init__(self):
         super().__init__("Basic Copper Mine", Copper, self.productionRate)
@@ -265,7 +265,7 @@ class CopperMineAdvanced(Building):
     cost = [(10, "Copper"), (20, "Iron")]
     name = 'Advanced Copper Mine'
     produces = Copper
-    productionRate = 10
+    productionRate = 30
 
     def __init__(self):
         super().__init__("Advanced Copper Mine", Copper, self.productionRate)
@@ -274,7 +274,7 @@ class IronMine(Building):
     cost = [(20, "Copper")]
     name = 'Iron Mine'
     produces = Iron
-    productionRate = 2
+    productionRate = 6
 
     def __init__(self):
         super().__init__("Iron Mine", Iron, self.productionRate)
@@ -283,7 +283,7 @@ class TitaniumMine(Building):
     cost = [(100, "Copper"), (50, "Iron")]
     name = 'Titanium Mine'
     produces = Titanium
-    productionRate = 2
+    productionRate = 6
 
     @classmethod
     def get_abbreviation(cls):
@@ -296,7 +296,7 @@ class TantalumMine(Building):
     cost = [(75, "Copper"), (50, "Iron"), (15, "Titanium")]
     name = 'Tantalum Mine'
     produces = Tantalum
-    productionRate = 2
+    productionRate = 6
 
     @classmethod
     def get_abbreviation(cls):
