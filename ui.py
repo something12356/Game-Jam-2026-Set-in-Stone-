@@ -375,6 +375,8 @@ class Player:
             # print('---')
             if c.timeLimit <= time:
                 continue
+            if c.dead:
+                continue
             if c.party2 is self.factory:
                 # Reverse it ('without loss of generality, self is c.party1')
                 c = c.op()
@@ -945,7 +947,7 @@ def main():
     p4 = Player(pygame.Color("Blue"), factories[3],
                 lambda: SC_INFO.base_player_area.move(Vec2(SC_INFO.main_area.size) / 2), contracts, state)
     players = [p1, p2, p3, p4]
-    contracts.append(Contract(p1.factory, p2.factory, [(3, "Copper"), (1, "Iron")], [(2, "Copper"), (1, "Increase slot")], 130))
+    #contracts.append(Contract(p1.factory, p2.factory, [(3, "Copper"), (1, "Iron")], [(2, "Copper"), (1, "Increase slot")], 130))
     bm = BottomMenu(lambda: SC_INFO.menu_area)
     tb = Topbar(lambda: SC_INFO.top_area, state)
     ol = Overlay(lambda: SC_INFO.overlay_area, state, players)
@@ -1029,10 +1031,21 @@ def main():
                             continue
                         p.factory.mineLoop(collecting=True)
 
-                ## Check if any contracts need to be executed
-                for contract in contracts:
-                    if t == contract.timeLimit:
-                        contract.checkFulfilled()
+            ## Check if any contracts need to be executed
+            contractsToRemove = []
+            for contract in contracts:
+                if contract.dead:
+                    continue
+                contract.dead = True
+                for player in players:
+                    if player.factory == contract.party1:
+                        contract.dead = False
+                contract.dead = True
+                for player in players:
+                    if player.factory == contract.party2:
+                        contract.dead = True
+                if t == contract.timeLimit:
+                    contract.checkFulfilled()  
 
             ol.t = t
             olf.t = t
