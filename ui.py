@@ -645,7 +645,7 @@ def demo_factory():
         factoryE = Factory('name', [CopperMineBasic()],
                         [Copper(33), Iron(10),
                             *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
-                            if oc != Copper and oc != NullResource)], 11)
+                            if oc != Copper and oc != Iron and oc != NullResource)], 11)
         factoryL = Factory('name', [],
                         [Copper(0),
                             *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
