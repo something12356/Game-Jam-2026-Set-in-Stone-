@@ -107,6 +107,7 @@ class State:
     creating_contract: Factory | None = None
     req_next_turn: bool = False
     req_boosting: bool = False
+    is_end: bool = False
 
 
 @dataclasses.dataclass
@@ -246,18 +247,6 @@ class Player:
 
     def use_fireopal_action(self):
         self.state.req_boosting = True
-        # TODO handle this
-        # TODO handle this
-        # TODO handle this
-        # TODO handle this
-        # TODO handle this
-        # TODO handle this
-        # TODO handle this
-        # TODO handle this
-        # TODO handle this
-        # TODO handle this
-        # TODO handle this
-        # TODO handle this
 
     def render_buy_buttons(self, dest: pygame.Surface):
         font = load_from_fontspec('Helvetica', 'sans-serif')
@@ -282,7 +271,7 @@ class Player:
         return buttons
 
     def maybe_show_blocked(self, dest: pygame.Surface):
-        if not self.factory.blockedFromPlaying:
+        if self.state.is_end or not self.factory.blockedFromPlaying:
             return
         self.buttons = []
         tex = load_from_fontspec('Helvetica', 'sans-serif',
@@ -306,6 +295,43 @@ class Player:
         dest.blit(tex_shadow_c2, tex_shadow_c2.get_rect(center=dest.get_rect().center))
         dest.blit(tex, tex.get_rect(center=dest.get_rect().center))
 
+    def calc_score(self):
+        score = 0
+        special = 0
+        for ore in self.factory.ores:
+            score += ore.amount * ore.value
+            if ore.type in ["DragonEgg", "FireOpal", "Elbaite",
+                            "Yooperlite"] and ore.amount >= 1:
+                special += 1
+        if special == 4:
+            score += 8000
+        return score
+
+    def maybe_show_done(self, dest: pygame.Surface):
+        if not self.state.is_end:
+            return
+        self.buttons = []
+        text = f'SCORE:\n{self.calc_score()}'
+        tex = load_from_fontspec('Helvetica', 'sans-serif',
+                                 bold=True, align=pygame.FONT_CENTER,
+                                 size=100).render(
+            text, True, (200,) * 3 + (200,),
+            wraplength=dest.width - 8
+        )
+        tex_shadow = load_from_fontspec('Helvetica', 'sans-serif',
+                                        bold=True, align=pygame.FONT_CENTER,
+                                        size=100).render(
+            text, True, 'black',
+            wraplength=dest.width - 8
+        )
+        tex_shadow_c = pygame.Surface(Vec2(tex_shadow.size) + (10, 10), pygame.SRCALPHA)
+        tex_shadow_c.blit(tex_shadow,
+                          tex_shadow.get_rect(center=tex_shadow_c.get_rect().center))
+        # tex_shadow_c2 = pygame.Surface(tex_shadow_c.size, pygame.SRCALPHA)
+        tex_shadow_c2 = pygame.transform.box_blur(tex_shadow_c, 5)
+        dest.blit(tex_shadow_c2, tex_shadow_c2.get_rect(center=dest.get_rect().center))
+        dest.blit(tex, tex.get_rect(center=dest.get_rect().center))
+
     def render_area(self, dest: pygame.Surface, brightness):
         dest.fill(self.color.lerp(pygame.Color(0, 0, 0), brightness))
         self.render_factories(clamped_subsurf(dest, SC_INFO.player_buildings_area))
@@ -313,6 +339,7 @@ class Player:
         self.buttons += self.render_buy_buttons(clamped_subsurf(dest, SC_INFO.player_buy_area))
         self.render_side_buttons(dest)
         self.maybe_show_blocked(dest)
+        self.maybe_show_done(dest)
 
     def _render_single_contract(self, c: Contract) -> pygame.Surface:
         tex = load_from_fontspec('Helvetica', 'sans-serif').render(
@@ -365,6 +392,7 @@ class Player:
         self.render_contracts(clamped_subsurf(dest, SC_INFO.contract_list_area), time)
         self.render_new_contract_button(clamped_subsurf(dest, SC_INFO.contract_new_area))
         self.maybe_show_blocked(dest)
+        self.maybe_show_done(dest)
 
     def onclick(self, pos: Vec2):
         print('Recv Player.onclick')
@@ -712,7 +740,9 @@ def render_players_screen(screen: pygame.Surface, players: list[Player], playerT
     for p in players:
         p.begin()
         # p.render_area(clamped_subsurf(screen, p.area))
-        if players[playerTurn] == p:
+        if p.state.is_end:
+            brightness = 0.6
+        elif players[playerTurn] == p:
             if p.factory.blockedFromPlaying > 0:
                 brightness = 0.6
             else:
@@ -816,13 +846,16 @@ class Topbar:
         dest.blit(rendered, rendered.get_rect().move_to(center=dest.get_rect().center))
 
     def render_next_turn(self, dest: pygame.Surface):
-        cr = pygame.draw.rect(dest, Color(50, 50, 50), dest.get_rect().inflate(-8, -8))
+        text_color = 'white' if not self.state.is_end else (120, 120, 120)
+        rect_color = ((50,) if self.state.is_end else (68,)) * 3
+        cr = pygame.draw.rect(dest, rect_color, dest.get_rect().inflate(-8, -8))
         tex = load_from_fontspec('Helvetica', 'sans-serif').render(
-            'Next Turn', True, 'white'
+            'Next Turn', True, text_color
         )
         dest.blit(tex, tex.get_rect().move_to(center=dest.get_rect().center))
-        self.buttons += [(cr.move(Vec2(SC_INFO.next_turn_area.topleft) - SC_INFO.top_area.topleft),
-                          self.next_turn_action)]
+        if not self.state.is_end:
+            self.buttons += [(cr.move(Vec2(SC_INFO.next_turn_area.topleft) - SC_INFO.top_area.topleft),
+                              self.next_turn_action)]
 
     def next_turn_action(self):
         self.state.req_next_turn = True
@@ -956,19 +989,21 @@ def main():
 
             t += 1
             if t == MAXTURN:
+                state.is_end = True
                 endgame(players)
-            # Only mine once everyone has had a turn
-            if t%4 == 0:
-                for p in players:
-                    if p.factory.blockedFromPlaying > 0:
-                        p.factory.blockedFromPlaying -= 1
-                        continue
-                    p.factory.mineLoop(collecting=True)
+            else:
+                # Only mine once everyone has had a turn
+                if t%4 == 0:
+                    for p in players:
+                        if p.factory.blockedFromPlaying > 0:
+                            p.factory.blockedFromPlaying -= 1
+                            continue
+                        p.factory.mineLoop(collecting=True)
 
-            ## Check if any contracts need to be executed
-            for contract in contracts:
-                if t == contract.timeLimit:
-                    contract.checkFulfilled()
+                ## Check if any contracts need to be executed
+                for contract in contracts:
+                    if t == contract.timeLimit:
+                        contract.checkFulfilled()
 
             ol.t = t
             olf.t = t
@@ -980,7 +1015,9 @@ def main():
             assert bm.screen_num == 1
             for p in players:
                 p.begin()
-                if p == players[playerTurn]:
+                if p.state.is_end:
+                    brightness = 0.6
+                elif p == players[playerTurn]:
                     brightness = 0.3
                 else:
                     brightness = 0.9
