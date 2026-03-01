@@ -679,8 +679,12 @@ def render_players_screen(screen: pygame.Surface, players: list[Player], playerT
             brightness = 0.9
         p.render_area(clamped_subsurf(screen, p.area), brightness)
 
-def endgame(p1, p2, p3, p4):
-    #Need to add a loop for calculation of scores
+def endgame(players):
+    for p in players:
+        score = 0
+        for ore in p.factory.ores:
+            score += ore.amount*ore.value
+        print(f'{p.factory.name} got a score of {score}!')
         
 
 def demo_factory():
@@ -897,7 +901,7 @@ def main():
             state.req_next_turn = False
             t += 1
             if t == MAXTURN:
-                endgame(p1, p2, p3, p4)
+                endgame(players)
             # Only mine once everyone has had a turn
             if t%4 == 0:
                 for p in players:
