@@ -69,12 +69,12 @@ def clamped_subsurf(s: pygame.Surface, r: IRect | FRect):
 
 
 @functools.cache
-def _load_from_fontspec(*fontspec: str, size=20):
+def _load_from_fontspec(*fontspec: str, size=20, bold=False):
     for f in fontspec:
         if '/' in f or '\\' in f and Path(f).is_file():  # Filename
             p = Path(f)
         else:
-            p = pygame.font.match_font(f)
+            p = pygame.font.match_font(f, bold=bold)
         if p:
             fnt = pygame.font.Font(p, size)
             # May segfault, so segfault early:
@@ -83,8 +83,8 @@ def _load_from_fontspec(*fontspec: str, size=20):
 
 
 def load_from_fontspec(*fontspec: str, size=20, align: int = pygame.FONT_LEFT,
-                       strikethrough: bool = False):
-    f = _load_from_fontspec(*fontspec, size=size)
+                       strikethrough: bool = False, bold: bool = False):
+    f = _load_from_fontspec(*fontspec, size=size, bold=bold)
     f.align = align
     f.strikethrough = strikethrough
     return f
@@ -177,11 +177,37 @@ class Player:
             buttons.append((btn_rect_outer, lambda m_id=m_id: self.factory.createBuilding(m_id)))
         return buttons
 
+    def maybe_show_blocked(self, dest: pygame.Surface):
+        if not self.factory.blockedFromPlaying:
+            return
+        self.buttons = []
+        tex = load_from_fontspec('Helvetica', 'sans-serif',
+                                 bold=True, align=pygame.FONT_CENTER,
+                                 size=100).render(
+            f'BLOCKED\nFOR {self.factory.blockedFromPlaying} TURNS',
+            True, (200,) * 3 + (200,),
+            wraplength=dest.width - 8
+        )
+        tex_shadow = load_from_fontspec('Helvetica', 'sans-serif',
+                                 bold=True, align=pygame.FONT_CENTER,
+                                 size=100).render(
+            f'BLOCKED\nFOR {self.factory.blockedFromPlaying} TURNS',
+            True, 'black',
+            wraplength=dest.width - 8
+        )
+        tex_shadow_c = pygame.Surface(Vec2(tex_shadow.size) + (10, 10), pygame.SRCALPHA)
+        tex_shadow_c.blit(tex_shadow, tex_shadow.get_rect(center=tex_shadow_c.get_rect().center))
+        # tex_shadow_c2 = pygame.Surface(tex_shadow_c.size, pygame.SRCALPHA)
+        tex_shadow_c2 = pygame.transform.box_blur(tex_shadow_c, 5)
+        dest.blit(tex_shadow_c2, tex_shadow_c2.get_rect(center=dest.get_rect().center))
+        dest.blit(tex, tex.get_rect(center=dest.get_rect().center))
+
     def render_area(self, dest: pygame.Surface, brightness):
         dest.fill(self.color.lerp(pygame.Color(0, 0, 0), brightness))
         self.render_factories(clamped_subsurf(dest, SC_INFO.player_buildings_area))
         self.render_ores(clamped_subsurf(dest, SC_INFO.player_ores_area))
         self.buttons += self.render_buy_buttons(clamped_subsurf(dest, SC_INFO.player_buy_area))
+        self.maybe_show_blocked(dest)
 
     def _render_single_contract(self, c: Contract) -> pygame.Surface:
         tex = load_from_fontspec('Helvetica', 'sans-serif').render(
@@ -228,6 +254,7 @@ class Player:
         dest.fill(self.color.lerp(pygame.Color(0, 0, 0), brightness))
         self.render_contracts(clamped_subsurf(dest, SC_INFO.contract_list_area))
         self.render_new_contract_button(clamped_subsurf(dest, SC_INFO.contract_new_area))
+        self.maybe_show_blocked(dest)
 
     def onclick(self, pos: Vec2):
         print('Recv Player.onclick')
