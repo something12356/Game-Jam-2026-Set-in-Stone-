@@ -787,7 +787,7 @@ def endgame(players):
         if special == 4:
             score += 8000
         else:
-            for ore in self.factory.ores:
+            for ore in p.factory.ores:
                 if ore.type == "DragonEgg":
                     score = score*1.2**(ore.amount)
         if special > 4:
