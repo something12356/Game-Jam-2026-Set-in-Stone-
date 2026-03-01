@@ -455,7 +455,7 @@ class Overlay:
     def adjust_quantity(self, side: int, res: str, amount: int) -> None:
         ls = self.current.terms1 if side == 1 else self.current.terms2
         if res == '<deadline>':
-            self.current.timeLimit = max(self.current.timeLimit + amount, 0)
+            self.current.timeLimit = max(self.current.timeLimit + amount, self.t)
             return
         for i, (n, t) in enumerate(ls):
             if t == res:
