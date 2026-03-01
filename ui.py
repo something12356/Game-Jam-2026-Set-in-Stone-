@@ -705,8 +705,10 @@ def main():
         # RENDER YOUR GAME HERE
         if state.req_next_turn:
             state.req_next_turn = False
-            for p in players:
-                p.factory.mineLoop(collecting=True)
+            # Only mine once everyone has had a turn
+            if t%4 == 3:
+                for p in players:
+                    p.factory.mineLoop(collecting=True)
             t += 1
             ol.t = t
             olf.t = t
