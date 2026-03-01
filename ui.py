@@ -175,7 +175,7 @@ class Player:
         self.buttons += [(txr, self.petrify_action)]
 
     def petrify_action(self):
-        self.factory.blockedFromPlaying = max(self.factory.blockedFromPlaying, 1)
+        self.factory.blockedFromPlaying = max(self.factory.blockedFromPlaying, 2)
 
     def render_buy_buttons(self, dest: pygame.Surface):
         font = load_from_fontspec('Helvetica', 'sans-serif')

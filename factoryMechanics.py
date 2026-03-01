@@ -197,6 +197,24 @@ class FireOpal(Ore):
     def __init__(self, amount):
         super().__init__(amount, "FireOpal", (61, 91, 114))
 
+class DragonEgg(Ore):
+    name = 'DragonEgg'
+
+    def __init__(self, amount):
+        super().__init__(amount, "FireOpal", (0, 50, 150))
+
+class Elbaite(Ore):
+    name = 'Elbaite'
+
+    def __init__(self, amount):
+        super().__init__(amount, "Elbaite", (0, 255, 0))
+
+class Yooperlite(Ore):
+    name = 'Yooperlite'
+
+    def __init__(self, amount):
+        super().__init__(amount, "Yooperlite", (254, 241, 0))
+
 class NullResource(Ore):
     name = "NullResource"
 
@@ -289,7 +307,7 @@ class TantalumMine(Building):
 
 
 MINE_CLASSES = {"CopperMineBasic": CopperMineBasic, "CopperMineAdvanced":CopperMineAdvanced, "IronMine":IronMine, "TitaniumMine":TitaniumMine, "TantalumMine":TantalumMine, "BlockedSlot": BlockedSlot}
-RESOURCE_CLASSES = {"Copper":Copper, "Iron":Iron, "Titanium":Titanium, "Tantalum":Tantalum, "NullResource": NullResource}
+RESOURCE_CLASSES = {"Copper":Copper, "Iron":Iron, "Titanium":Titanium, "Tantalum":Tantalum, "DragonEgg":DragonEgg, "Elbaite":Elbaite, "Yooperlite":Yooperlite, "FireOpal":FireOpal, "NullResource": NullResource}
 TRADE_POSSIBILITIES = list(RESOURCE_CLASSES) + ["Increase slot"]
 TRADE_POSSIBILITIES.remove('NullResource')
 
