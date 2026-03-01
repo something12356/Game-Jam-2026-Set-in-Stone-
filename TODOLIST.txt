@@ -1,5 +1,3 @@
 
 
 Make the board
-
-Need a way to contract special items
