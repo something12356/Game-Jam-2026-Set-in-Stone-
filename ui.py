@@ -117,6 +117,10 @@ class Player:
     all_contracts: list[Contract]
     state: State
     incoming_contracts: list[Contract] = dataclasses.field(default_factory=list)
+    dead: bool = False
+
+    def kill(self):
+        dead = True
 
     def begin(self):
         self.buttons: list[tuple[IRect, Callable[[], None]]] = []
@@ -887,7 +891,7 @@ def main():
     p1 = Player(pygame.Color("Red"), factories[0],
                 lambda: SC_INFO.base_player_area, contracts, state)
     p2 = Player(pygame.Color("Yellow"), factories[1],
-                lambda: SC_INFO.base_player_area.move(SC_INFO.main_area.w / 2, 0), contracts, state)
+                lambda: SC_INFO.base_player_area.move(SC_INFO.main_area.w / 2, 0), contracts, state, dead=True)
     p3 = Player(pygame.Color("Green"), factories[2],
                 lambda: SC_INFO.base_player_area.move(0, SC_INFO.main_area.h / 2), contracts, state)
     p4 = Player(pygame.Color("Blue"), factories[3],
@@ -905,7 +909,10 @@ def main():
     music_player.start()
     state.curr_player = p1
     while running:
-        playerTurn = t%4
+        playerTurn = t%len(players)
+        if players[playerTurn].dead:
+            players.pop(playerTurn)
+        playerTurn = t%len(players)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -958,7 +965,7 @@ def main():
             if t == MAXTURN:
                 endgame(players)
             # Only mine once everyone has had a turn
-            if t%4 == 0:
+            if t%len(players) == 0:
                 for p in players:
                     if p.factory.blockedFromPlaying > 0:
                         p.factory.blockedFromPlaying -= 1
