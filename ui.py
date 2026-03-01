@@ -14,12 +14,6 @@ from factoryMechanics import Factory, CopperMineBasic, CopperMineAdvanced, IronM
 
 ORE_TEXT_COLOR = 'white'
 BUILDING_TEXT_COLOR = 'white'
-A = False
-B = False
-C = False
-D = False
-E = False
-L = False
 
 class ScreenInfo:
     def from_sc_size(self, sc_size: Vec2):
@@ -623,49 +617,59 @@ def render_players_screen(screen: pygame.Surface, players: list[Player], playerT
         p.render_area(clamped_subsurf(screen, p.area), brightness)
 
 
-def demo_factory(name: str):
-    factoryA = Factory(name, [IronMine()],
-                       [Copper(10), Iron(30), 
-                        *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
-                          if oc != Copper and oc != Iron and oc != NullResource)], 10)
-    factoryB = Factory(name, [CopperMineBasic()],
-                       [Copper(95),
-                        *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
-                          if oc != Copper and oc != NullResource)], 10)
-    factoryC = Factory(name, [CopperMineAdvanced()],
-                       [Copper(5), Iron(15),
-                        *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
-                          if oc != Copper and oc != Iron and oc != NullResource)], 10)
-    factoryD = Factory(name, [IronMine()],
-                       [Copper(0), 
-                        *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
-                          if oc != Copper and oc != NullResource)], 12)
-    factoryE = Factory(name, [CopperMineBasic()],
-                       [Copper(33), Iron(10),
-                        *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
-                          if oc != Copper and oc != NullResource)], 11)
-    factoryL = Factory(name, [],
-                       [Copper(0),
-                        *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
-                          if oc != Copper and oc != NullResource)], 10)
-    Luck = random.randint(1, 1000)
-    if (Luck < 200 and A == False):
-        factoryN = factoryA
-        A = True
-    elif (Luck < 399 and B == False):
-        factoryN = factoryB
-        B = True
-    elif (Luck < 598 and C == False):
-        factoryN = factoryC
-    elif (Luck < 797 and D == False):
-        factoryN = factoryD
-    elif (Luck < 996 and E == False):
-        factoryN = factoryE
-    elif (Luck >= 996 and L == False):
-        factoryN = factoryL
-    else:
-        demo_factory(name)
-    return factoryN
+def demo_factory():
+    factories = []
+    A = False
+    B = False
+    C = False
+    D = False
+    E = False
+    L = False
+    while len(factories) < 4:
+        factoryA = Factory('name', [IronMine()],
+                        [Copper(10), Iron(30), 
+                            *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
+                            if oc != Copper and oc != Iron and oc != NullResource)], 10)
+        factoryB = Factory('name', [CopperMineBasic()],
+                        [Copper(95),
+                            *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
+                            if oc != Copper and oc != NullResource)], 10)
+        factoryC = Factory('name', [CopperMineAdvanced()],
+                        [Copper(5), Iron(15),
+                            *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
+                            if oc != Copper and oc != Iron and oc != NullResource)], 10)
+        factoryD = Factory('name', [IronMine()],
+                        [Copper(0), 
+                            *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
+                            if oc != Copper and oc != NullResource)], 12)
+        factoryE = Factory('name', [CopperMineBasic()],
+                        [Copper(33), Iron(10),
+                            *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
+                            if oc != Copper and oc != NullResource)], 11)
+        factoryL = Factory('name', [],
+                        [Copper(0),
+                            *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
+                            if oc != Copper and oc != NullResource)], 10)
+        Luck = random.randint(1, 1000)
+        if (Luck < 200 and A == False):
+            factories.append(factoryA)
+            A = True
+        elif (Luck < 399 and B == False):
+            factories.append(factoryB)
+            B = True
+        elif (Luck < 598 and C == False):
+            factories.append(factoryC)
+            C = True
+        elif (Luck < 797 and D == False):
+            factories.append(factoryD)
+            D = True
+        elif (Luck < 996 and E == False):
+            factories.append(factoryE)
+            E = True
+        elif (Luck >= 996 and L == False):
+            factories.append(factoryL)
+            L = True
+    return factories
 
 
 @dataclasses.dataclass
@@ -754,13 +758,18 @@ def main():
     music_player = MusicPlayer()
     state = State()
     contracts = []
-    p1 = Player(pygame.Color("Red"), demo_factory('Red'),
+    factories = demo_factory()
+    factories[0].name = "Red"
+    factories[1].name = "Yellow"
+    factories[2].name = "Green"
+    factories[3].name = "Blue"
+    p1 = Player(pygame.Color("Red"), factories[0],
                 lambda: SC_INFO.base_player_area, contracts, state)
-    p2 = Player(pygame.Color("Yellow"), demo_factory('Yellow'),
+    p2 = Player(pygame.Color("Yellow"), factories[1],
                 lambda: SC_INFO.base_player_area.move(SC_INFO.main_area.w / 2, 0), contracts, state)
-    p3 = Player(pygame.Color("Green"), demo_factory('Green'),
+    p3 = Player(pygame.Color("Green"), factories[2],
                 lambda: SC_INFO.base_player_area.move(0, SC_INFO.main_area.h / 2), contracts, state)
-    p4 = Player(pygame.Color("Blue"), demo_factory('Blue'),
+    p4 = Player(pygame.Color("Blue"), factories[3],
                 lambda: SC_INFO.base_player_area.move(Vec2(SC_INFO.main_area.size) / 2), contracts, state)
     players = [p1, p2, p3, p4]
     contracts.append(Contract(p1.factory, p2.factory, [(3, "Copper"), (1, "Iron")], [(2, "Copper"), (1, "Increase slot")], 130))
