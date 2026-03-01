@@ -891,7 +891,7 @@ def main():
     p1 = Player(pygame.Color("Red"), factories[0],
                 lambda: SC_INFO.base_player_area, contracts, state)
     p2 = Player(pygame.Color("Yellow"), factories[1],
-                lambda: SC_INFO.base_player_area.move(SC_INFO.main_area.w / 2, 0), contracts, state, dead=True)
+                lambda: SC_INFO.base_player_area.move(SC_INFO.main_area.w / 2, 0), contracts, state)
     p3 = Player(pygame.Color("Green"), factories[2],
                 lambda: SC_INFO.base_player_area.move(0, SC_INFO.main_area.h / 2), contracts, state)
     p4 = Player(pygame.Color("Blue"), factories[3],
