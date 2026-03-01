@@ -24,15 +24,15 @@ class ScreenInfo:
         self.turnCount_area = self.top_area.scale_by(0.5, 1).move_to(topleft=self.top_area.topleft)
         self.next_turn_area = self.top_area.scale_by(0.5, 1).move_to(topright=self.top_area.topright)
         self.rem_area = self.sc_rect.move_to(height=self.sc_rect.height-self.turnCount_area.height, bottom=self.sc_rect.bottom)
-        self.main_area = self.rem_area.scale_by(1, 0.93).move_to(topleft=self.turnCount_area.bottomleft)
-        self.menu_area = self.rem_area.scale_by(1, 0.07).move_to(topleft=self.main_area.bottomleft)
+        self.main_area = self.rem_area.scale_by(1, 0.9).move_to(topleft=self.turnCount_area.bottomleft)
+        self.menu_area = self.rem_area.scale_by(1, 0.1).move_to(topleft=self.main_area.bottomleft)
         self.base_player_area = self.main_area.scale_by(0.5, 0.5).move_to(topleft=self.main_area.topleft)
         self.base_player_area_rel = self.base_player_area.move_to(topleft=(0, 0))
         self.player_left_area = self.base_player_area.scale_by(0.22, 1).move_to(
             topleft=(0, 0))
-        self.player_ores_area = self.player_left_area.scale_by(1, 0.5).move_to(
+        self.player_ores_area = self.player_left_area.scale_by(1, 0.55).move_to(
             topleft=self.player_left_area.topleft)
-        self.player_buttons_area = self.player_left_area.scale_by(1, 0.5).move_to(
+        self.player_buttons_area = self.player_left_area.scale_by(1, 0.45).move_to(
             topleft=self.player_ores_area.bottomleft)
         self.player_right_area = self.base_player_area.scale_by(0.78, 1).move_to(
             topleft=self.player_left_area.topright)
@@ -106,7 +106,6 @@ class State:
     curr_player: Player = None
     creating_contract: Factory | None = None
     req_next_turn: bool = False
-    req_boosting: bool = False
 
 
 @dataclasses.dataclass
@@ -117,6 +116,10 @@ class Player:
     all_contracts: list[Contract]
     state: State
     incoming_contracts: list[Contract] = dataclasses.field(default_factory=list)
+    dead: bool
+
+    def kill(self):
+        self.dead = True
 
     def begin(self):
         self.buttons: list[tuple[IRect, Callable[[], None]]] = []
@@ -150,18 +153,9 @@ class Player:
                 x = 5
                 y += h_max + 5  # Next 'line'
                 h_max = 1
-            txx = dest.blit(tex, (x, y))
-            if self.state.req_boosting and i < len(self.factory.buildings):
-                self.buttons += [
-                    (txx.move(SC_INFO.player_buildings_area.topleft),
-                     lambda i=i: self.boost_machine(i))]
+            dest.blit(tex, (x, y))
             x += w + 5
             h_max = max(h_max, h)
-
-    def boost_machine(self, mach_idx: int):
-        print(f'Boosting {mach_idx}...')
-        self.factory.increaseProduction(mach_idx)
-        self.state.req_boosting = False
 
     def render_ores(self, dest: pygame.Surface):
         ores = sorted(self.factory.ores, key=lambda i: [*backend.RESOURCE_CLASSES].index(i.type))
@@ -243,21 +237,6 @@ class Player:
 
     def petrify_action(self):
         self.factory.blockedFromPlaying = max(self.factory.blockedFromPlaying, 2)
-
-    def use_fireopal_action(self):
-        self.state.req_boosting = True
-        # TODO handle this
-        # TODO handle this
-        # TODO handle this
-        # TODO handle this
-        # TODO handle this
-        # TODO handle this
-        # TODO handle this
-        # TODO handle this
-        # TODO handle this
-        # TODO handle this
-        # TODO handle this
-        # TODO handle this
 
     def render_buy_buttons(self, dest: pygame.Surface):
         font = load_from_fontspec('Helvetica', 'sans-serif')
@@ -730,7 +709,7 @@ def endgame(players):
             if ore.type in ["DragonEgg", "FireOpal", "Elbaite", "Yooperlite"] and ore.amount >= 1:
                 special += 1
         if special == 4:
-            score += 8000
+            score += 25000
         if special > 4:
             print("WHATT????")
             quit()
@@ -887,11 +866,11 @@ def main():
     p1 = Player(pygame.Color("Red"), factories[0],
                 lambda: SC_INFO.base_player_area, contracts, state)
     p2 = Player(pygame.Color("Yellow"), factories[1],
-                lambda: SC_INFO.base_player_area.move(SC_INFO.main_area.w / 2, 0), contracts, state)
+                lambda: SC_INFO.base_player_area.move(SC_INFO.main_area.w / 2, 0), contracts, state, False)
     p3 = Player(pygame.Color("Green"), factories[2],
-                lambda: SC_INFO.base_player_area.move(0, SC_INFO.main_area.h / 2), contracts, state)
+                lambda: SC_INFO.base_player_area.move(0, SC_INFO.main_area.h / 2), contracts, state, False)
     p4 = Player(pygame.Color("Blue"), factories[3],
-                lambda: SC_INFO.base_player_area.move(Vec2(SC_INFO.main_area.size) / 2), contracts, state)
+                lambda: SC_INFO.base_player_area.move(Vec2(SC_INFO.main_area.size) / 2), contracts, state, False)
     players = [p1, p2, p3, p4]
     contracts.append(Contract(p1.factory, p2.factory, [(3, "Copper"), (1, "Iron")], [(2, "Copper"), (1, "Increase slot")], 130))
     bm = BottomMenu(lambda: SC_INFO.menu_area)
@@ -926,14 +905,16 @@ def main():
                 else:
                     print('Click -> Regular')
                     pl = players[playerTurn]
-                    if pl.factory.blockedFromPlaying <= 0:
-                        ## Can't buy buildings if failed contract recently
-                        if pl.area.collidepoint(pos):
-                            pl.onclick(pos - pl.area.topleft)
-                    else:
-                        print('[blocked]')
-                    if bm.area.collidepoint(pos):
-                        bm.onclick(pos - bm.area.topleft)
+                    ## Can't do anything if dead
+                    if not pl.dead:
+                        if pl.factory.blockedFromPlaying <= 0:
+                            ## Can't buy buildings if failed contract recently
+                            if pl.area.collidepoint(pos):
+                                pl.onclick(pos - pl.area.topleft)
+                        else:
+                            print('[blocked]')
+                        if bm.area.collidepoint(pos):
+                            bm.onclick(pos - bm.area.topleft)
                     if tb.area.collidepoint(pos):
                         tb.onclick(pos - tb.area.topleft)
 
@@ -951,16 +932,13 @@ def main():
         # RENDER YOUR GAME HERE
         if state.req_next_turn:
             state.req_next_turn = False
-            state.req_boosting = False
-            bm.screen_num = 0
-
             t += 1
             if t == MAXTURN:
                 endgame(players)
             # Only mine once everyone has had a turn
             if t%4 == 0:
                 for p in players:
-                    if p.factory.blockedFromPlaying > 0:
+                    if p.factory.blockedFromPlaying > 0 or p.dead:
                         p.factory.blockedFromPlaying -= 1
                         continue
                     p.factory.mineLoop(collecting=True)
