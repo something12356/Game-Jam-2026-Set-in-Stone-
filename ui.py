@@ -10,7 +10,7 @@ from pygame import FRect, Rect as IRect
 
 import factoryMechanics as backend
 from factoryMechanics import (
-    Factory, CopperMineBasic, CopperMineAdvanced, IronMine, Copper, Iron,
+    Factory, CopperMineBasic, CopperMineAdvanced, IronMine, Copper, Iron, DragonEgg, FireOpal, Elbaite, Yooperlite, Tantalum, Titanium,
     Building, Contract, NullResource)
 
 ORE_TEXT_COLOR = 'white'
@@ -28,14 +28,13 @@ class ScreenInfo:
         self.menu_area = self.rem_area.scale_by(1, 0.1).move_to(topleft=self.main_area.bottomleft)
         self.base_player_area = self.main_area.scale_by(0.5, 0.5).move_to(topleft=self.main_area.topleft)
         self.base_player_area_rel = self.base_player_area.move_to(topleft=(0, 0))
-        self.player_left_area = self.base_player_area.scale_by(0.18, 1).move_to(
+        self.player_left_area = self.base_player_area.scale_by(0.22, 1).move_to(
             topleft=(0, 0))
-        self.player_ores_area = self.player_left_area.scale_by(1, 0.5).move_to(
+        self.player_ores_area = self.player_left_area.scale_by(1, 0.55).move_to(
             topleft=self.player_left_area.topleft)
-        self.player_buttons_area = self.player_left_area.scale_by(1, 0.5).move_to(
-            topleft=self.player_ores_area.bottomleft
-        )
-        self.player_right_area = self.base_player_area.scale_by(0.82, 1).move_to(
+        self.player_buttons_area = self.player_left_area.scale_by(1, 0.45).move_to(
+            topleft=self.player_ores_area.bottomleft)
+        self.player_right_area = self.base_player_area.scale_by(0.78, 1).move_to(
             topleft=self.player_left_area.topright)
         self.player_buildings_area = self.player_right_area.scale_by(1, 0.4).move_to(
             topleft=self.player_right_area.topleft)
@@ -53,7 +52,7 @@ class ScreenInfo:
         return self
 
 
-SC_INFO = ScreenInfo().from_sc_size(Vec2(1200, 750))
+SC_INFO = ScreenInfo().from_sc_size(Vec2(1300, 900))
 
 
 def clamped_subsurf(s: pygame.Surface, r: IRect | FRect):
@@ -164,15 +163,56 @@ class Player:
     def render_side_buttons(self, dest: pygame.Surface):
         y = SC_INFO.player_buttons_area.top + 5
         # x = SC_INFO.player_buttons_area.left + 5
-        w = SC_INFO.player_buttons_area.width - 10
+        w = SC_INFO.player_buttons_area.width
         tex = load_from_fontspec('Helvetica', 'sans-serif').render(
             'Petrify', True, 'white'
         )
         txr = tex.get_rect(top=y, centerx=SC_INFO.player_buttons_area.centerx)
-        pygame.draw.rect(dest, Color(50, 50, 50), txr.move_to(
+        txx = pygame.draw.rect(dest, Color(50, 50, 50), txr.move_to(
             width=w-10, height=tex.height + 6, center=txr.center))
         dest.blit(tex, txr)
-        self.buttons += [(txr, self.petrify_action)]
+        y = txx.bottom + 5
+        self.buttons += [(txx, self.petrify_action)]
+
+        tex = load_from_fontspec('Helvetica', 'sans-serif').render(
+            'Add FireOpal', True, 'white'
+        )
+        txr = tex.get_rect(top=y, centerx=SC_INFO.player_buttons_area.centerx)
+        txx = pygame.draw.rect(dest, Color(50, 50, 50), txr.move_to(
+            width=w - 10, height=tex.height + 6, center=txr.center))
+        dest.blit(tex, txr)
+        y = txx.bottom + 5
+        self.buttons += [(txx, lambda: self.factory.add_ore("FireOpal", 1))]
+
+        tex = load_from_fontspec('Helvetica', 'sans-serif').render(
+            'Add Yooperlite', True, 'white'
+        )
+        txr = tex.get_rect(top=y, centerx=SC_INFO.player_buttons_area.centerx)
+        txx = pygame.draw.rect(dest, Color(50, 50, 50), txr.move_to(
+            width=w - 10, height=tex.height + 6, center=txr.center))
+        dest.blit(tex, txr)
+        y = txx.bottom + 5
+        self.buttons += [(txx, lambda: self.factory.add_ore(Yooperlite.name, 1))]
+
+        tex = load_from_fontspec('Helvetica', 'sans-serif').render(
+            'Add DragonEgg', True, 'white'
+        )
+        txr = tex.get_rect(top=y, centerx=SC_INFO.player_buttons_area.centerx)
+        txx = pygame.draw.rect(dest, Color(50, 50, 50), txr.move_to(
+            width=w - 10, height=tex.height + 6, center=txr.center))
+        dest.blit(tex, txr)
+        y = txx.bottom + 5
+        self.buttons += [(txx, lambda: self.factory.add_ore(DragonEgg.name, 1))]
+
+        tex = load_from_fontspec('Helvetica', 'sans-serif').render(
+            'Add Elbaite', True, 'white'
+        )
+        txr = tex.get_rect(top=y, centerx=SC_INFO.player_buttons_area.centerx)
+        txx = pygame.draw.rect(dest, Color(50, 50, 50), txr.move_to(
+            width=w - 10, height=tex.height + 6, center=txr.center))
+        dest.blit(tex, txr)
+        y = txx.bottom + 5
+        self.buttons += [(txx, lambda: self.factory.add_ore(Elbaite.name, 1))]
 
     def petrify_action(self):
         self.factory.blockedFromPlaying = max(self.factory.blockedFromPlaying, 2)
@@ -186,7 +226,7 @@ class Player:
                 continue
             costs = sorted(cls.cost, key=lambda cost: cost[1])
             cost_str = (f'{cls.get_abbreviation()}: {cls.productionRate} '
-                        f'{cls.produces.name}/sec (COST: '
+                        f'{cls.produces.name}/round (COST: '
                         + ', '.join(f'{n} {ore_s}' for n, ore_s in costs)
                         + ')')
             text_color = 'white' if self.factory.can_buy(m_id) else (120, 120, 120)
@@ -673,9 +713,9 @@ def demo_factory():
                             *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
                             if oc != Copper and oc != Iron and oc != NullResource)], 11)
         factoryL = Factory('name', [],
-                        [Copper(0),
+                        [Copper(0), DragonEgg(1), Elbaite(1), Yooperlite(1), FireOpal(1),
                             *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
-                            if oc != Copper and oc != NullResource)], 10)
+                            if oc != Copper and oc != NullResource and oc != DragonEgg and oc != Elbaite and oc != Yooperlite and oc != FireOpal)], 10)
         Luck = random.randint(1, 1000)
         if (Luck < 200 and A == False):
             factories.append(factoryA)

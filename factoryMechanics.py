@@ -100,6 +100,13 @@ class Factory:
                         return False
         return True
 
+    def add_ore(self, o: str, n: int):
+        for o2 in self.ores:
+            if o2.type == o:
+                o2.amount += n
+                return
+        self.ores.append(RESOURCE_CLASSES[o](n))
+
     # Creates building based on what player selects and if they have enough ores to buy it + if they are not above the current building limit
     def createBuilding(self, buildingType):
         if buildingType == "":
@@ -163,8 +170,8 @@ class Ore:
     name: str
 
     def __init__(self, amount, type, colour, value):
-        self.amount = amount
-        self.type = type
+        self.amount: int = amount
+        self.type: str = type
         self.colour = colour
         self.value = value
 
