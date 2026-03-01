@@ -93,18 +93,16 @@ def render_building(b: Building):
     dest = pygame.Surface((40, 40))
     pygame.draw.rect(dest, b.ore.colour, IRect(0, 0, 40, 40))
     font = load_from_fontspec('Helvetica', 'sans-serif')
-    tex = font.render(abbreviate(b.name), True, BUILDING_TEXT_COLOR)
+    tex = font.render(b.get_abbreviation(), True, BUILDING_TEXT_COLOR)
     tex_area = tex.get_rect(center=dest.get_rect().center)
     dest.blit(tex, tex_area)
     return dest
+
 
 def render_emptySlot():
     dest = pygame.Surface((40, 40))
     pygame.draw.rect(dest, 'black', IRect(0, 0, 40, 40))
     return dest
-
-def abbreviate(s: str):
-    return ''.join(w[0] for w in s.split())
 
 
 @dataclasses.dataclass
@@ -148,8 +146,7 @@ class Player:
             h_max = max(h_max, h)
 
     def render_ores(self, dest: pygame.Surface):
-        # Alphabetical consistent order
-        ores = sorted(self.factory.ores, key=lambda i: i.type)
+        ores = sorted(self.factory.ores, key=lambda i: [*backend.RESOURCE_CLASSES].index(i.type))
         font = load_from_fontspec('Helvetica', 'sans-serif')
         text = '\n'.join(f'{o.type}: {round(o.amount, 3)}' for o in ores)
 
@@ -165,7 +162,7 @@ class Player:
             if not cls.can_buy_directly:
                 continue
             costs = sorted(cls.cost, key=lambda cost: cost[1])
-            cost_str = (f'{abbreviate(cls.name)}: {cls.productionRate} '
+            cost_str = (f'{cls.get_abbreviation()}: {cls.productionRate} '
                         f'{cls.produces.name}/sec (COST: '
                         + ', '.join(f'{n} {ore_s}' for n, ore_s in costs)
                         + ')')

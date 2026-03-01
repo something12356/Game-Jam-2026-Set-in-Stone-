@@ -186,6 +186,10 @@ class Building:
     productionRate: float
     can_buy_directly: bool = True
 
+    @classmethod
+    def get_abbreviation(cls):
+        return ''.join(w[0] for w in cls.name.split())
+
     def __init__(self, name: str, oreType, productionRate):
         self.name = name
         self.ore: Ore = oreType(0)
@@ -238,6 +242,10 @@ class TitaniumMine(Building):
     produces = Titanium
     productionRate = 2
 
+    @classmethod
+    def get_abbreviation(cls):
+        return 'Ti'
+
     def __init__(self):
         super().__init__("Titanium Mine", Titanium, self.productionRate)
 
@@ -246,6 +254,10 @@ class TantalumMine(Building):
     name = 'Tantalum Mine'
     produces = Tantalum
     productionRate = 2
+
+    @classmethod
+    def get_abbreviation(cls):
+        return 'TaM'  # TODO
 
     def __init__(self):
         super().__init__("Tantalum Mine", Tantalum, self.productionRate)
