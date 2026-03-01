@@ -9,8 +9,9 @@ from pygame import Vector2 as Vec2, Color
 from pygame import FRect, Rect as IRect
 
 import factoryMechanics as backend
-from factoryMechanics import Factory, CopperMineBasic, CopperMineAdvanced, IronMine, Copper, Iron, Titanium, Tantalum, Building, Contract, \
-    NullResource
+from factoryMechanics import (
+    Factory, CopperMineBasic, CopperMineAdvanced, IronMine, Copper, Iron,
+    Building, Contract, NullResource)
 
 ORE_TEXT_COLOR = 'white'
 BUILDING_TEXT_COLOR = 'white'
@@ -27,10 +28,15 @@ class ScreenInfo:
         self.menu_area = self.rem_area.scale_by(1, 0.1).move_to(topleft=self.main_area.bottomleft)
         self.base_player_area = self.main_area.scale_by(0.5, 0.5).move_to(topleft=self.main_area.topleft)
         self.base_player_area_rel = self.base_player_area.move_to(topleft=(0, 0))
-        self.player_ores_area = self.base_player_area.scale_by(0.18, 1).move_to(
+        self.player_left_area = self.base_player_area.scale_by(0.18, 1).move_to(
             topleft=(0, 0))
+        self.player_ores_area = self.player_left_area.scale_by(1, 0.5).move_to(
+            topleft=self.player_left_area.topleft)
+        self.player_buttons_area = self.player_left_area.scale_by(1, 0.5).move_to(
+            topleft=self.player_ores_area.bottomleft
+        )
         self.player_right_area = self.base_player_area.scale_by(0.82, 1).move_to(
-            topleft=self.player_ores_area.topright)
+            topleft=self.player_left_area.topright)
         self.player_buildings_area = self.player_right_area.scale_by(1, 0.4).move_to(
             topleft=self.player_right_area.topleft)
         self.player_buy_area = self.player_right_area.scale_by(1, 0.6).move_to(
@@ -155,6 +161,22 @@ class Player:
                                wraplength=dest.width - 5)  # 2, 3
         dest.blit(rendered, (3, 2))  # Padding: 2 above, 3 left
 
+    def render_side_buttons(self, dest: pygame.Surface):
+        y = SC_INFO.player_buttons_area.top + 5
+        # x = SC_INFO.player_buttons_area.left + 5
+        w = SC_INFO.player_buttons_area.width - 10
+        tex = load_from_fontspec('Helvetica', 'sans-serif').render(
+            'Petrify', True, 'white'
+        )
+        txr = tex.get_rect(top=y, centerx=SC_INFO.player_buttons_area.centerx)
+        pygame.draw.rect(dest, Color(50, 50, 50), txr.move_to(
+            width=w-10, height=tex.height + 6, center=txr.center))
+        dest.blit(tex, txr)
+        self.buttons += [(txr, self.petrify_action)]
+
+    def petrify_action(self):
+        self.factory.blockedFromPlaying = max(self.factory.blockedFromPlaying, 1)
+
     def render_buy_buttons(self, dest: pygame.Surface):
         font = load_from_fontspec('Helvetica', 'sans-serif')
         y = 0
@@ -207,6 +229,7 @@ class Player:
         self.render_factories(clamped_subsurf(dest, SC_INFO.player_buildings_area))
         self.render_ores(clamped_subsurf(dest, SC_INFO.player_ores_area))
         self.buttons += self.render_buy_buttons(clamped_subsurf(dest, SC_INFO.player_buy_area))
+        self.render_side_buttons(dest)
         self.maybe_show_blocked(dest)
 
     def _render_single_contract(self, c: Contract) -> pygame.Surface:
