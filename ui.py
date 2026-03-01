@@ -1035,6 +1035,7 @@ def main():
             contractsToRemove = []
             for contract in contracts:
                 if contract.dead:
+                    print("DEAD")
                     continue
                 contract.dead = True
                 for player in players:
@@ -1043,7 +1044,7 @@ def main():
                 contract.dead = True
                 for player in players:
                     if player.factory == contract.party2:
-                        contract.dead = True
+                        contract.dead = False
                 if t == contract.timeLimit:
                     contract.checkFulfilled()  
 
