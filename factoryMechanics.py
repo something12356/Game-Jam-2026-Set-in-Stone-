@@ -88,9 +88,7 @@ class Factory:
         self.boosted = False
         self.blockedFromPlaying = 0 ## Made positive when the party can't play due to failing a contract
 
-    def can_buy(self, buildingType: str):
-        building = MINE_CLASSES[buildingType]()
-        cost = building.cost
+    def can_buy_cost(self, cost: list[tuple[int, str]]):
         if len(self.buildings) >= self.capacity:
             return
         for oreCost in cost:
@@ -99,6 +97,10 @@ class Factory:
                     if round(ore.amount, 3) < oreCost[0]:
                         return False
         return True
+
+    def can_buy(self, buildingType: str):
+        building = MINE_CLASSES[buildingType]()
+        return self.can_buy_cost(building.cost)
 
     def add_ore(self, o: str, n: int):
         for o2 in self.ores:
@@ -227,7 +229,7 @@ class NullResource(Ore):
     name = "NullResource"
 
     def __init__(self, amount):
-        super().__init__(amount, "NullResource", (255, 0, 0, 0))
+        super().__init__(amount, "NullResource", (255, 0, 0, 0), 0)
 
 # Add capability to mine multiple ores with same building
 class Building:

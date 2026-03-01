@@ -95,16 +95,6 @@ def load_from_fontspec(*fontspec: str, size=20, align: int = pygame.FONT_LEFT,
     return f
 
 
-def render_building(b: Building):
-    dest = pygame.Surface((40, 40))
-    pygame.draw.rect(dest, b.ore.colour, IRect(0, 0, 40, 40))
-    font = load_from_fontspec('Helvetica', 'sans-serif')
-    tex = font.render(b.get_abbreviation(), True, BUILDING_TEXT_COLOR)
-    tex_area = tex.get_rect(center=dest.get_rect().center)
-    dest.blit(tex, tex_area)
-    return dest
-
-
 def render_emptySlot():
     dest = pygame.Surface((40, 40))
     pygame.draw.rect(dest, 'black', IRect(0, 0, 40, 40))
@@ -113,6 +103,7 @@ def render_emptySlot():
 
 @dataclasses.dataclass
 class State:
+    curr_player: Player = None
     creating_contract: Factory | None = None
     req_next_turn: bool = False
     req_boosting: bool = False
@@ -134,13 +125,24 @@ class Player:
     def area(self):
         return self.area_getter()
 
+    def render_building(self, b: Building):
+        dest = pygame.Surface((40, 40))
+        pygame.draw.rect(dest, b.ore.colour, IRect(0, 0, 40, 40))
+        if self.state.req_boosting and self.state.curr_player is self:
+            pygame.draw.rect(dest, 'white', IRect(0, 0, 40, 40), width=1)
+        font = load_from_fontspec('Helvetica', 'sans-serif')
+        tex = font.render(b.get_abbreviation(), True, BUILDING_TEXT_COLOR)
+        tex_area = tex.get_rect(center=dest.get_rect().center)
+        dest.blit(tex, tex_area)
+        return dest
+
     def render_factories(self, dest: pygame.Surface):
         x = 5
         y = 5
         h_max = 1
         for i in range(self.factory.capacity):
             if i < len(self.factory.buildings): 
-                tex = render_building(self.factory.buildings[i])
+                tex = self.render_building(self.factory.buildings[i])
             else:
                 tex = render_emptySlot()
             w, h = tex.size
@@ -185,15 +187,19 @@ class Player:
         self.buttons += [(txx, self.petrify_action)]
 
         # TODO: disable if no fire opal !!!!!
+        has_opal = self.factory.can_buy_cost([(1, 'FireOpal')])
+        text_color = 'white' if has_opal else (120, 120, 120)
+        rect_color = ((50,) if has_opal else (68,)) * 3
         tex = load_from_fontspec('Helvetica', 'sans-serif').render(
-            'Boost Machine', True, 'white'
+            'Boost Machine', True, text_color
         )
         txr = tex.get_rect(top=y, centerx=SC_INFO.player_buttons_area.centerx)
-        txx = pygame.draw.rect(dest, Color(50, 50, 50), txr.move_to(
+        txx = pygame.draw.rect(dest, rect_color, txr.move_to(
             width=w - 10, height=tex.height + 6, center=txr.center))
         dest.blit(tex, txr)
         y = txx.bottom + 5
-        self.buttons += [(txx, self.use_fireopal_action)]
+        if has_opal:
+            self.buttons += [(txx, self.use_fireopal_action)]
 
         tex = load_from_fontspec('Helvetica', 'sans-serif').render(
             'Add FireOpal', True, 'white'
@@ -897,6 +903,7 @@ def main():
     t = 0
 
     music_player.start()
+    state.curr_player = p1
     while running:
         playerTurn = t%4
         for event in pygame.event.get():
@@ -931,6 +938,7 @@ def main():
                         tb.onclick(pos - tb.area.topleft)
 
         i += 1
+        state.curr_player = players[playerTurn]
 
         # fill the screen with a color to wipe away anything from last frame
         screen.fill("black")
