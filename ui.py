@@ -330,7 +330,7 @@ class Player:
         if not self.state.is_end:
             return
         self.buttons = []
-        text = f'SCORE:\n{self.calc_score()}'
+        text = f'SCORE:\n{self.calc_score():.0f}'
         tex = load_from_fontspec('Helvetica', 'sans-serif',
                                  bold=True, align=pygame.FONT_CENTER,
                                  size=100).render(
