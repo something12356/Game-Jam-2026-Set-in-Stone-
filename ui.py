@@ -118,6 +118,10 @@ class Player:
     all_contracts: list[Contract]
     state: State
     incoming_contracts: list[Contract] = dataclasses.field(default_factory=list)
+    dead: bool = False
+
+    def kill(self):
+        self.dead = True
 
     def begin(self):
         self.buttons: list[tuple[IRect, Callable[[], None]]] = []
@@ -959,14 +963,16 @@ def main():
                 else:
                     print('Click -> Regular')
                     pl = players[playerTurn]
-                    if pl.factory.blockedFromPlaying <= 0:
-                        ## Can't buy buildings if failed contract recently
-                        if pl.area.collidepoint(pos):
-                            pl.onclick(pos - pl.area.topleft)
-                    else:
-                        print('[blocked]')
-                    if bm.area.collidepoint(pos):
-                        bm.onclick(pos - bm.area.topleft)
+                    ## Can't do anything if dead
+                    if not pl.dead:
+                        if pl.factory.blockedFromPlaying <= 0:
+                            ## Can't buy buildings if failed contract recently
+                            if pl.area.collidepoint(pos):
+                                pl.onclick(pos - pl.area.topleft)
+                        else:
+                            print('[blocked]')
+                        if bm.area.collidepoint(pos):
+                            bm.onclick(pos - bm.area.topleft)
                     if tb.area.collidepoint(pos):
                         tb.onclick(pos - tb.area.topleft)
 
@@ -995,7 +1001,7 @@ def main():
                 # Only mine once everyone has had a turn
                 if t%4 == 0:
                     for p in players:
-                        if p.factory.blockedFromPlaying > 0:
+                        if p.factory.blockedFromPlaying > 0 or p.dead:
                             p.factory.blockedFromPlaying -= 1
                             continue
                         p.factory.mineLoop(collecting=True)
