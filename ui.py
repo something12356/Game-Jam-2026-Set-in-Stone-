@@ -24,15 +24,15 @@ class ScreenInfo:
         self.turnCount_area = self.top_area.scale_by(0.5, 1).move_to(topleft=self.top_area.topleft)
         self.next_turn_area = self.top_area.scale_by(0.5, 1).move_to(topright=self.top_area.topright)
         self.rem_area = self.sc_rect.move_to(height=self.sc_rect.height-self.turnCount_area.height, bottom=self.sc_rect.bottom)
-        self.main_area = self.rem_area.scale_by(1, 0.9).move_to(topleft=self.turnCount_area.bottomleft)
-        self.menu_area = self.rem_area.scale_by(1, 0.1).move_to(topleft=self.main_area.bottomleft)
+        self.main_area = self.rem_area.scale_by(1, 0.93).move_to(topleft=self.turnCount_area.bottomleft)
+        self.menu_area = self.rem_area.scale_by(1, 0.07).move_to(topleft=self.main_area.bottomleft)
         self.base_player_area = self.main_area.scale_by(0.5, 0.5).move_to(topleft=self.main_area.topleft)
         self.base_player_area_rel = self.base_player_area.move_to(topleft=(0, 0))
         self.player_left_area = self.base_player_area.scale_by(0.22, 1).move_to(
             topleft=(0, 0))
-        self.player_ores_area = self.player_left_area.scale_by(1, 0.55).move_to(
+        self.player_ores_area = self.player_left_area.scale_by(1, 0.5).move_to(
             topleft=self.player_left_area.topleft)
-        self.player_buttons_area = self.player_left_area.scale_by(1, 0.45).move_to(
+        self.player_buttons_area = self.player_left_area.scale_by(1, 0.5).move_to(
             topleft=self.player_ores_area.bottomleft)
         self.player_right_area = self.base_player_area.scale_by(0.78, 1).move_to(
             topleft=self.player_left_area.topright)
@@ -115,6 +115,7 @@ def render_emptySlot():
 class State:
     creating_contract: Factory | None = None
     req_next_turn: bool = False
+    req_boosting: bool = False
 
 
 @dataclasses.dataclass
@@ -147,9 +148,18 @@ class Player:
                 x = 5
                 y += h_max + 5  # Next 'line'
                 h_max = 1
-            dest.blit(tex, (x, y))
+            txx = dest.blit(tex, (x, y))
+            if self.state.req_boosting and i < len(self.factory.buildings):
+                self.buttons += [
+                    (txx.move(SC_INFO.player_buildings_area.topleft),
+                     lambda i=i: self.boost_machine(i))]
             x += w + 5
             h_max = max(h_max, h)
+
+    def boost_machine(self, mach_idx: int):
+        print(f'Boosting {mach_idx}...')
+        self.factory.increaseProduction(mach_idx)
+        self.state.req_boosting = False
 
     def render_ores(self, dest: pygame.Surface):
         ores = sorted(self.factory.ores, key=lambda i: [*backend.RESOURCE_CLASSES].index(i.type))
@@ -173,6 +183,17 @@ class Player:
         dest.blit(tex, txr)
         y = txx.bottom + 5
         self.buttons += [(txx, self.petrify_action)]
+
+        # TODO: disable if no fire opal !!!!!
+        tex = load_from_fontspec('Helvetica', 'sans-serif').render(
+            'Boost Machine', True, 'white'
+        )
+        txr = tex.get_rect(top=y, centerx=SC_INFO.player_buttons_area.centerx)
+        txx = pygame.draw.rect(dest, Color(50, 50, 50), txr.move_to(
+            width=w - 10, height=tex.height + 6, center=txr.center))
+        dest.blit(tex, txr)
+        y = txx.bottom + 5
+        self.buttons += [(txx, self.use_fireopal_action)]
 
         tex = load_from_fontspec('Helvetica', 'sans-serif').render(
             'Add FireOpal', True, 'white'
@@ -216,6 +237,21 @@ class Player:
 
     def petrify_action(self):
         self.factory.blockedFromPlaying = max(self.factory.blockedFromPlaying, 2)
+
+    def use_fireopal_action(self):
+        self.state.req_boosting = True
+        # TODO handle this
+        # TODO handle this
+        # TODO handle this
+        # TODO handle this
+        # TODO handle this
+        # TODO handle this
+        # TODO handle this
+        # TODO handle this
+        # TODO handle this
+        # TODO handle this
+        # TODO handle this
+        # TODO handle this
 
     def render_buy_buttons(self, dest: pygame.Surface):
         font = load_from_fontspec('Helvetica', 'sans-serif')
@@ -891,6 +927,9 @@ def main():
         # RENDER YOUR GAME HERE
         if state.req_next_turn:
             state.req_next_turn = False
+            state.req_boosting = False
+            bm.screen_num = 0
+
             t += 1
             # Only mine once everyone has had a turn
             if t%4 == 0:

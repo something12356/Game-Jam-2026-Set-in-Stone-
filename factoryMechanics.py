@@ -133,7 +133,7 @@ class Factory:
     ## Spend a fire opal to increase production of a machine
     def increaseProduction(self, buildingNumber):
         for ore in self.ores:
-            if ore.type == FireOpal and self.buildings[buildingNumber].boosted == False:
+            if ore.type == "FireOpal" and self.buildings[buildingNumber].boosted == False:
                 if ore.amount >= 1:
                     self.buildings[buildingNumber].productionRate *= 2
                     self.buildings[buildingNumber].boosted = True
@@ -244,6 +244,7 @@ class Building:
         self.name = name
         self.ore: Ore = oreType(0)
         self.productionRate = productionRate
+        self.boosted = False
 
     def mine(self):
         self.ore.amount += self.productionRate
