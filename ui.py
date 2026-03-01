@@ -15,7 +15,6 @@ from factoryMechanics import (
 
 ORE_TEXT_COLOR = 'white'
 BUILDING_TEXT_COLOR = 'white'
-END = False
 
 class ScreenInfo:
     def from_sc_size(self, sc_size: Vec2):
@@ -931,58 +930,56 @@ def main():
 
         # render_turnCount(clamped_subsurf(screen, SC_INFO.turnCount_area), t)
         # RENDER YOUR GAME HERE
-        if not END:
-            if state.req_next_turn:
-                state.req_next_turn = False
-                t += 1
-                if t == MAXTURN:
-                    endgame(players)
-                    END = True
-                # Only mine once everyone has had a turn
-                if t%4 == 0:
-                    for p in players:
-                        if p.factory.blockedFromPlaying > 0 or p.dead:
-                            p.factory.blockedFromPlaying -= 1
-                            continue
-                        p.factory.mineLoop(collecting=True)
-
-                ## Check if any contracts need to be executed
-                for contract in contracts:
-                    if t == contract.timeLimit:
-                        contract.checkFulfilled()
-
-                ol.t = t
-                olf.t = t
-            bm.display(clamped_subsurf(screen, bm.area))
-            tb.render(clamped_subsurf(screen, tb.area), t)
-            if bm.screen_num == 0:
-                render_players_screen(screen, players, playerTurn)
-            else:
-                assert bm.screen_num == 1
+        if state.req_next_turn:
+            state.req_next_turn = False
+            t += 1
+            if t == MAXTURN:
+                endgame(players)
+            # Only mine once everyone has had a turn
+            if t%4 == 0:
                 for p in players:
-                    p.begin()
-                    if p == players[playerTurn]:
-                        brightness = 0.3
-                    else:
-                        brightness = 0.9
-                    p.render_contracts_area(clamped_subsurf(screen, p.area), brightness, t)
-                # IMPORTANT: LAST
-                if state.creating_contract:
-                    s = pygame.Surface(screen.size, pygame.SRCALPHA)
-                    pygame.draw.rect(s, pygame.Color(0, 0, 0, 129), s.get_rect())
-                    screen.blit(s)
-                    # pygame.draw.rect(screen, pygame.Color(0, 0, 0, 10), screen.get_rect())
-                ol.display(clamped_subsurf(screen, ol.area))
-            p = players[playerTurn]
-            # print(f'{p.incoming_contracts=}')
-            if p.incoming_contracts:
+                    if p.factory.blockedFromPlaying > 0 or p.dead:
+                        p.factory.blockedFromPlaying -= 1
+                        continue
+                    p.factory.mineLoop(collecting=True)
+
+            ## Check if any contracts need to be executed
+            for contract in contracts:
+                if t == contract.timeLimit:
+                    contract.checkFulfilled()
+
+            ol.t = t
+            olf.t = t
+        bm.display(clamped_subsurf(screen, bm.area))
+        tb.render(clamped_subsurf(screen, tb.area), t)
+        if bm.screen_num == 0:
+            render_players_screen(screen, players, playerTurn)
+        else:
+            assert bm.screen_num == 1
+            for p in players:
+                p.begin()
+                if p == players[playerTurn]:
+                    brightness = 0.3
+                else:
+                    brightness = 0.9
+                p.render_contracts_area(clamped_subsurf(screen, p.area), brightness, t)
+            # IMPORTANT: LAST
+            if state.creating_contract:
                 s = pygame.Surface(screen.size, pygame.SRCALPHA)
                 pygame.draw.rect(s, pygame.Color(0, 0, 0, 129), s.get_rect())
                 screen.blit(s)
-                c = p.incoming_contracts[0]
-                olf.current = c.op()
-                olf.current_player_object = p
-                olf.display(clamped_subsurf(screen, olf.area))
+                # pygame.draw.rect(screen, pygame.Color(0, 0, 0, 10), screen.get_rect())
+            ol.display(clamped_subsurf(screen, ol.area))
+        p = players[playerTurn]
+        # print(f'{p.incoming_contracts=}')
+        if p.incoming_contracts:
+            s = pygame.Surface(screen.size, pygame.SRCALPHA)
+            pygame.draw.rect(s, pygame.Color(0, 0, 0, 129), s.get_rect())
+            screen.blit(s)
+            c = p.incoming_contracts[0]
+            olf.current = c.op()
+            olf.current_player_object = p
+            olf.display(clamped_subsurf(screen, olf.area))
 
 
         screen_real.blit(screen)
