@@ -28,7 +28,7 @@ class ScreenInfo:
         self.base_player_area = self.main_area.scale_by(0.5, 0.5).move_to(topleft=self.main_area.topleft)
         self.base_player_area_rel = self.base_player_area.move_to(topleft=(0, 0))
         self.player_ores_area = self.base_player_area.scale_by(0.18, 1).move_to(
-            topleft=(0, 0))
+            topleft=self.base_player_area.topleft)
         self.player_right_area = self.base_player_area.scale_by(0.82, 1).move_to(
             topleft=self.player_ores_area.topright)
         self.player_buildings_area = self.player_right_area.scale_by(1, 0.4).move_to(
@@ -456,7 +456,7 @@ class Overlay:
     def adjust_quantity(self, side: int, res: str, amount: int) -> None:
         ls = self.current.terms1 if side == 1 else self.current.terms2
         if res == '<deadline>':
-            self.current.timeLimit = max(self.current.timeLimit + amount, 0)
+            self.current.timeLimit = max(self.current.timeLimit + amount, self.t)
             return
         for i, (n, t) in enumerate(ls):
             if t == res:

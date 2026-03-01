@@ -225,7 +225,7 @@ class Building:
 
 class BlockedSlot(Building):
     cost = [(0, "NullResource")]
-    name = "(Blocked Slot)"
+    name = "BlockedSlot"
     produces = NullResource
     productionRate = 0
     can_buy_directly = False
