@@ -10,7 +10,7 @@ from pygame import FRect, Rect as IRect
 
 import factoryMechanics as backend
 from factoryMechanics import (
-    Factory, CopperMineBasic, CopperMineAdvanced, IronMine, Copper, Iron,
+    Factory, CopperMineBasic, CopperMineAdvanced, IronMine, Copper, Iron, DragonEgg, FireOpal, Elbaite, Yooperlite,
     Building, Contract, NullResource, Yooperlite, DragonEgg, Elbaite)
 
 ORE_TEXT_COLOR = 'white'
@@ -710,9 +710,9 @@ def demo_factory():
                             *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
                             if oc != Copper and oc != Iron and oc != NullResource)], 11)
         factoryL = Factory('name', [],
-                        [Copper(0),
+                        [Copper(0), DragonEgg(1), Elbaite(1), Yooperlite(1), FireOpal(1),
                             *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
-                            if oc != Copper and oc != NullResource)], 10)
+                            if oc != Copper and oc != NullResource and oc != DragonEgg and oc != Elbaite and oc != Yooperlite and oc != FireOpal)], 10)
         Luck = random.randint(1, 1000)
         if (Luck < 200 and A == False):
             factories.append(factoryA)
