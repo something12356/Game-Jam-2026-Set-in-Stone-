@@ -364,7 +364,7 @@ class Overlay:
         pygame.draw.rect(dest, pygame.Color(20, 20, 20), inner)
         if side == 1:
             tex = load_from_fontspec('Helvetica', 'sans-serif', align=pygame.FONT_CENTER).render(
-                f'{self.current.party1.name} gives', True, 'white'
+                f'You give', True, 'white'
             )
             pygame.draw.rect(dest, pygame.Color(30, 30, 30), tex.get_rect(width=inner.width - 10, centerx=inner.centerx, top=y).inflate(2, 2))
             dest.blit(tex, tex.get_rect(centerx=inner.centerx, top=y))
@@ -721,7 +721,7 @@ def main():
             for contract in contracts:
                 if t == contract.timeLimit:
                     contract.checkFulfilled()
-                    
+
             ol.t = t
             olf.t = t
         bm.display(clamped_subsurf(screen, bm.area))
