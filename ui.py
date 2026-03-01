@@ -2,18 +2,24 @@ import dataclasses
 import functools
 from pathlib import Path
 from typing import Callable
+import random
 
 import pygame
 from pygame import Vector2 as Vec2, Color
 from pygame import FRect, Rect as IRect
 
 import factoryMechanics as backend
-from factoryMechanics import Factory, CopperMineBasic, Copper, Iron, Titanium, Tantalum, Building, Contract, \
+from factoryMechanics import Factory, CopperMineBasic, CopperMineAdvanced, IronMine, Copper, Iron, Titanium, Tantalum, Building, Contract, \
     NullResource
 
 ORE_TEXT_COLOR = 'white'
 BUILDING_TEXT_COLOR = 'white'
-
+A = False
+B = False
+C = False
+D = False
+E = False
+L = False
 
 class ScreenInfo:
     def from_sc_size(self, sc_size: Vec2):
@@ -618,11 +624,48 @@ def render_players_screen(screen: pygame.Surface, players: list[Player], playerT
 
 
 def demo_factory(name: str):
-    factory1 = Factory(name, [CopperMineBasic()],
-                       [Copper(5),
+    factoryA = Factory(name, [IronMine()],
+                       [Copper(10), Iron(30), 
+                        *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
+                          if oc != Copper and oc != Iron and oc != NullResource)], 10)
+    factoryB = Factory(name, [CopperMineBasic()],
+                       [Copper(95),
                         *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
                           if oc != Copper and oc != NullResource)], 10)
-    return factory1
+    factoryC = Factory(name, [CopperMineAdvanced()],
+                       [Copper(5), Iron(15),
+                        *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
+                          if oc != Copper and oc != Iron and oc != NullResource)], 10)
+    factoryD = Factory(name, [IronMine()],
+                       [Copper(0), 
+                        *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
+                          if oc != Copper and oc != NullResource)], 12)
+    factoryE = Factory(name, [CopperMineBasic()],
+                       [Copper(33), Iron(10),
+                        *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
+                          if oc != Copper and oc != NullResource)], 11)
+    factoryL = Factory(name, [],
+                       [Copper(0),
+                        *(oc(0) for oc in backend.RESOURCE_CLASSES.values()
+                          if oc != Copper and oc != NullResource)], 10)
+    Luck = random.randint(1, 1000)
+    if (Luck < 200 and A == False):
+        factoryN = factoryA
+        A = True
+    elif (Luck < 399 and B == False):
+        factoryN = factoryB
+        B = True
+    elif (Luck < 598 and C == False):
+        factoryN = factoryC
+    elif (Luck < 797 and D == False):
+        factoryN = factoryD
+    elif (Luck < 996 and E == False):
+        factoryN = factoryE
+    elif (Luck >= 996 and L == False):
+        factoryN = factoryL
+    else:
+        demo_factory(name)
+    return factoryN
 
 
 @dataclasses.dataclass
