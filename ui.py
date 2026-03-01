@@ -226,7 +226,7 @@ class Player:
                 continue
             costs = sorted(cls.cost, key=lambda cost: cost[1])
             cost_str = (f'{cls.get_abbreviation()}: {cls.productionRate} '
-                        f'{cls.produces.name}/sec (COST: '
+                        f'{cls.produces.name}/round (COST: '
                         + ', '.join(f'{n} {ore_s}' for n, ore_s in costs)
                         + ')')
             text_color = 'white' if self.factory.can_buy(m_id) else (120, 120, 120)
