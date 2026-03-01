@@ -711,11 +711,17 @@ def main():
         # RENDER YOUR GAME HERE
         if state.req_next_turn:
             state.req_next_turn = False
+            t += 1
             # Only mine once everyone has had a turn
-            if t%4 == 3:
+            if t%4 == 0:
                 for p in players:
                     p.factory.mineLoop(collecting=True)
-            t += 1
+
+            ## Check if any contracts need to be executed
+            for contract in contracts:
+                if t == contract.timeLimit:
+                    contract.checkFulfilled()
+                    
             ol.t = t
             olf.t = t
         bm.display(clamped_subsurf(screen, bm.area))
@@ -748,6 +754,7 @@ def main():
             olf.current = c.op()
             olf.current_player_object = p
             olf.display(clamped_subsurf(screen, olf.area))
+
 
         screen_real.blit(screen)
         pygame.display.flip()

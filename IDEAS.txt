@@ -8,6 +8,7 @@ TantalumMine             |75C50I15Ti     |0.5Ta          |
 
 
 Initial Capacity 10 // This is missing an indicator
+^^ it's sorted!
 
 Board shrinks with time
 Game is turn based
