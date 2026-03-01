@@ -223,9 +223,9 @@ class Player:
         x = y = 5
         h_max = 1
         for c in self.all_contracts:
-            print(time)
-            print(c.timeLimit)
-            print('---')
+            # print(time)
+            # print(c.timeLimit)
+            # print('---')
             if c.timeLimit <= time:
                 continue
             if c.party2 is self.factory:
